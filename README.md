@@ -1,28 +1,24 @@
 # 🍺 Poisoned Pints
 
-A 2–5 player fantasy tavern game of strategy, chaos and mystery, playable in the browser on phone or laptop.
+A fantasy tavern game of strategy, chaos and mystery, playable in the browser on phone or laptop.
 
-Run a rival tavern in the city of Ashveil. Hire shady staff, send them to poison, rob and brawl at rival taverns, and secretly bribe the Guard Captain. Every attack is anonymous: use fair clues to work out who hit you, and watch out for traitors in your own crew.
+You run a tavern in the city of Ashveil. **By day** you drag your crew to jobs: the bar, the door, or the mission map to sneak into rival taverns. **By night** you play live: serve guests, catch hooded spies sneaking into *your* tavern, and pick up the clues they drop. **In the morning** you see what happened and use your clues to accuse the rival behind each attack.
 
 ## Play
-- **Live:** https://hratika-23.github.io/Poisoned-Pints/
-- `/play/` – **the main game**: your 3D tavern room. Day: drag crew to the bar, door or mission map. Night (live): serve guests, catch hooded spies, collect clues. Morning: results + evidence board.
-- `/prototype/` – the first close-up 3D day screen (drag crew onto rivals, drag coins onto the Captain, tap crew to talk, night preview)
-- `/game/` – the full playable game: 7 nights vs bots, tutorial mode, case file, crew moods & quirks, comeback mechanics
+**Live:** https://hratika-23.github.io/Poisoned-Pints/
 
 ## Project layout
 | Path | What it is |
 |---|---|
-| `game/engine.js` | Rules engine (no graphics): staff, missions, blind all-pay bribes, fair clues, accusations, traitors, bot personalities. Ready to run on a multiplayer server later. |
-| `game/index.html` | Full game UI (built from `game-src/`) |
-| `game-src/` | Source parts of the game UI (`head.html` + `core.js` + `game.js`) |
-| `prototype/index.html` | New chunky 3D day-screen prototype |
-| `archive/` | Parked real-time version with sneak/brawl/pickpocket mini-games |
+| `index.html` | Animated home page |
+| `play/index.html` | The game: 3D tavern room, day planning, live night, morning report |
+| `play/engine.js` | Rules engine (no graphics): staff & quirks, missions, blind all-pay bribes, fair clues, accusations, traitors, bot personalities, comeback rules. Ready to run on a multiplayer host later. |
+| `archive/` | Earlier versions kept for reference: `classic/` (menu-based), `prototype/` (first 3D look test), `realtime-minigames.html` (sneak/brawl/pickpocket mini-games) |
 
 ## Tech
-Plain HTML/JS + [Three.js r128](https://threejs.org/) from a CDN. No build step and no server needed. Hosted free on GitHub Pages.
+Plain HTML/JS + [Three.js r128](https://threejs.org/) from a CDN. No build step, no server. Hosted free on GitHub Pages.
 
 ## Roadmap
-1. Bring the full game onto the new 3D look
-2. Night scenes and optional mini-games
-3. Online multiplayer (room codes, reconnect, bots fill empty seats)
+1. Online multiplayer with room codes (friends play their own taverns; bots fill empty seats)
+2. Mini-games for your own missions (sneak, brawl, pickpocket)
+3. More events, staff and tavern upgrades

@@ -138,7 +138,7 @@ body.night #nightBar{display:flex} body.night .fb{display:none}
 <div id="err">The game didn't load. Check your connection and reload.</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="../game/engine.js"></script>
+<script src="engine.js"></script>
 <script>
 (function(){
 'use strict';
@@ -204,6 +204,10 @@ const LOOKS = {
   bard:      {body:0xe0701c, skin:0xf7d2b0, hat:'feather', hatC:0x7d3cb5, prop:'lute'},
   taster:    {body:0xf2f2f2, skin:0xffdcb8, hat:'chef', hatC:0xffffff, nose:1.9},
   talker:    {body:0x6a2c8a, skin:0xf1c27d, hat:'tophat', hatC:0x1a1a1a, prop:'cane'},
+  waiter:    {body:0x1f6f8b, skin:0xf2c09b, hat:'cap', hatC:0x16495c, apron:true},
+  cellarer:  {body:0x7a5230, skin:0xe0ac69, hat:'bandana', hatC:0x3b2412, wide:1.15, beard:0x6b4a2a},
+  watchman:  {body:0x3a5a40, skin:0xf5cfae, hat:'fedora', hatC:0x22301f},
+  cook:      {body:0xffffff, skin:0xf7d2b0, hat:'chef', hatC:0xffffff, apron:true, wide:1.2},
   owner:     {body:0xffc23d, skin:0xf5c6a0, hat:'crown', apron:true},
   hood:      {body:0x3d3848, skin:0x2c2838, hat:'hood', hatC:0x26222f, eyeGlow:true}
 };
@@ -359,8 +363,8 @@ const street = mk(G.box(4, 0.1, 4), 0x7a6a92, {recv:true}); street.position.set(
 
 // ---------------- stations ----------------
 const ST = {
-  bar:  {icon:'🍺', name:'Bar',  desc:'serves guests at night', slots:[{x:-3.0,z:-4.9},{x:-1.9,z:-4.9},{x:-0.8,z:-4.9}], face:0,           zone:p => p.z < -3.3 && p.x < 0.6,                 c:{x:-1.6,z:-3.6}},
-  door: {icon:'🛡️', name:'Door', desc:'catches intruders',      slots:[{x:-3.7,z:1.25},{x:-3.7,z:3.85}],             face:Math.PI/2,   zone:p => p.x < -2.6 && p.z > 0.4 && p.z < 4.6,    c:{x:-3.5,z:2.6}},
+  bar:  {icon:'🍺', name:'Bar',  desc:'works the bar at night', slots:[{x:-3.0,z:-4.9},{x:-2.1,z:-4.9},{x:-1.2,z:-4.9},{x:-0.3,z:-4.9}], face:0,           zone:p => p.z < -3.3 && p.x < 0.6,                 c:{x:-1.6,z:-3.6}},
+  door: {icon:'🛡️', name:'Door', desc:'watches for intruders', slots:[{x:-3.7,z:1.25},{x:-3.7,z:3.85},{x:-2.8,z:0.5}],             face:Math.PI/2,   zone:p => p.x < -2.6 && p.z > 0.4 && p.z < 4.6,    c:{x:-3.5,z:2.6}},
   map:  {icon:'🗺️', name:'Map',  desc:'go on a mission',        slots:[{x:3.6,z:-1.9},{x:3.6,z:-0.9},{x:3.6,z:0.4},{x:3.6,z:1.4}], face:-Math.PI/2, zone:p => p.x > 2.4 && p.z > -2.6 && p.z < 2.2, c:{x:3.4,z:-0.3}},
   rest: {icon:'💤', name:'Rest', slots:[{x:1.05,z:3.85},{x:2.45,z:3.85},{x:3.85,z:3.85},{x:3.6,z:2.4},{x:1.7,z:2.4}], face:0}
 };
@@ -557,6 +561,10 @@ canvas.addEventListener('pointerup', e => {
   sfx.drop(); ch.cheer = 0.5; syncStaff(); dayCoach();
 });
 
+const HOME_ROLE = {waiter:'bar', cellarer:'bar', cook:'bar', watchman:'door', taster:'bar'};
+function defaultStation(st){ const want = HOME_ROLE[st.type] || 'rest'; if (want === 'rest') return 'rest';
+  return me().staff.filter(y => y !== st && y.station === want).length < ST[want].slots.length ? want : 'rest'; }
+const onDuty = type => me().staff.filter(s => s.type === type && !s.jailed && (s.station === 'bar' || s.station === 'door'));
 function missionPicker(st){
   const mt = STAFF[st.type].mission, M = MISSIONS[mt];
   const targets = M.selfOnly ? [ME] : S.taverns.filter(t => t.id !== ME).map(t => t.id).concat(M.selfOk ? [ME] : []);
@@ -604,7 +612,7 @@ function cityMap(){
 
 // footer buttons
 $('#fHire').onclick = () => { if (phase !== 'day') return; audio(); const p = me(), max = PP.maxStaff(S,p);
-  let h = `<h2>🚪 Looking for work</h2><div class="note">Your crew: ${p.staff.length}/${max}. Each hire has a mood and a quirk. Read the notes: some recruits are secret moles for a rival. 🐀</div><div class="sec">At the door today</div>`;
+  let h = `<h2>🚪 Looking for work</h2><div class="note">Your crew: ${p.staff.length}/${max}. <b>Agents</b> (🧪🗡️💪🕵️🎻🎩) go on missions. <b>Home staff</b> (🍽️ waiter, 🛢️ cellar-keeper, 🔦 watchman, 🍲 cook, 👃 taster) work your tavern at night. Each hire has a mood and a quirk, and a few are secret moles for a rival. 🐀</div><div class="sec">At the door today</div>`;
   if (!p.recruits.length) h += `<div class="note">Nobody else today. Come back tomorrow.</div>`;
   p.recruits.forEach(r => { const c = PP.hireCost(S,p,r), can = p.gold >= c && p.staff.length < max;
     h += `<div class="item"><div class="ic">${STAFF[r.type].icon}</div><div class="tx"><b>${esc(r.name)} · ${STAFF[r.type].name}</b><small>${STAFF[r.type].desc}</small>
@@ -613,7 +621,7 @@ $('#fHire').onclick = () => { if (phase !== 'day') return; audio(); const p = me
   h += `<div class="row"><button class="btn ghost" data-close>Close</button></div>`;
   sheet(h);
   document.querySelectorAll('#sheet [data-h]').forEach(b => b.onclick = () => { const err = PP.hire(S, ME, +b.dataset.h); if (err) return;
-    sfx.win(); closeSheet(); const st = me().staff[me().staff.length-1]; st.station = 'rest'; syncStaff(); const ch = staffCh.get(st.id); ch.cheer = 1.5;
+    sfx.win(); closeSheet(); const st = me().staff[me().staff.length-1]; st.station = defaultStation(st); syncStaff(); const ch = staffCh.get(st.id); ch.cheer = 1.5;
     setTimeout(() => pop({x:-3.4, y:3, z:2.6}, `🎉 ${st.name} joined!`, '#7cff4f'), 600); hud(); }); };
 $('#fBribe').onclick = () => { if (phase !== 'day') return; audio(); drawBribe(); };
 function drawBribe(){ const p = me(), talk = PP.active(p,'talker'), under = PP.isUnderdog(S,p);
@@ -724,10 +732,10 @@ function serve(g, byStaff){
   g.state = 'drink'; g.drink = 3; g.bub.visible = false; setMood(g, 5);
   // a mug flies from the bar
   const mug = new THREE.Group(); const c = mk(G.cyl(0.16,0.14,0.32,10), 0xd59a3a); mug.add(c); const f = mk(G.cyl(0.18,0.18,0.08,10), 0xfff8e6); f.position.y = 0.18; mug.add(f);
-  scene.add(mug); const from = {x:-0.6, y:1.4, z:-4.0}, to = {x:g.pos.x, y:1.4, z:g.pos.z}; let t = 0;
+  scene.add(mug); const src = byStaff && byStaff.pos ? {x:byStaff.pos.x, y:1.6, z:byStaff.pos.z} : {x:-0.6, y:1.4, z:-4.0}, from = src, to = {x:g.pos.x, y:1.4, z:g.pos.z}; let t = 0;
   const fly = () => { t += 0.05; const e = Math.min(1, t); mug.position.set(lerp(from.x,to.x,e), lerp(from.y,to.y,e) + Math.sin(e*Math.PI)*1.6, lerp(from.z,to.z,e)); mug.rotation.z += 0.3;
     if (e < 1) requestAnimationFrame(fly); else { scene.remove(mug); } }; fly();
-  const tip = Math.round(g.patience/g.max*4), pay = N.price + tip;
+  const tip = Math.round(g.patience/g.max*4), pay = N.price + tip + onDuty('cook').length*2;
   N.served++; N.income += pay; sfx.coin();
   setTimeout(() => { burst({x:g.pos.x, y:1.8, z:g.pos.z}, 0xffc23d, 8, {geo:'c', up:5}); pop({x:g.pos.x, y:3, z:g.pos.z}, `+${pay}${byStaff?'':' 💰'}`, tip >= 3 ? '#7cff4f' : '#ffc23d'); }, 350);
   setTimeout(() => { if (g.state === 'drink') guestLeave(g, 'happy'); }, 3400);
@@ -737,7 +745,9 @@ function spawnIntruder(e){
   const ch = makeChibi(LOOKS.hood); ch.root.scale.setScalar(1.05); ch.e = e; ch.pos = {...HUB.OUT}; ch.root.position.set(ch.pos.x, 0, ch.pos.z); scene.add(ch.root);
   ch.alertS = emojiSprite('❗', '#ffffff', 0.9); ch.alertS.position.y = 3.0; ch.root.add(ch.alertS);
   const hit = new THREE.Mesh(G.cyl(1.0,1.0,2.8,10), new THREE.MeshBasicMaterial({visible:false})); hit.position.y = 1.2; ch.root.add(hit); ch.hit = hit; hit.userData.i = ch;
-  ch.slow = S.difficulty === 'hard' ? 1.15 : 1; ch.guardTried = new Set();
+  const watch = onDuty('watchman').length;
+  ch.slow = (S.difficulty === 'hard' ? 1.15 : 1) * (watch ? 0.6 : 1); ch.guardTried = new Set();
+  if (watch){ const w = staffCh.get(onDuty('watchman')[0].id); if (w){ w.cheer = 0.6; setTimeout(() => pop({x:w.pos.x, y:3.2, z:w.pos.z}, '🔦 Spotted a spy!', '#fff27a'), 400); } }
   intruders.push(ch); e.live = 'in';
   sfx.alarm(); $('#alert').classList.add('on'); setTimeout(() => $('#alert').classList.remove('on'), 900);
   coach(`🚨 A <b>hooded spy</b> just walked in! <b>Tap them</b> before they reach your ${e.type==='poison'?'keg ☠️':e.type==='steal'?'till 💰':'tables'}!`);
@@ -817,10 +827,19 @@ function updNight(dt){
   // bar staff serve on their own (slower than you)
   const barStaff = me().staff.filter(s => s.station === 'bar' && !s.jailed).length;
   if (barStaff){ n.barCd -= dt * barStaff; if (n.barCd <= 0){ n.barCd = 4.2; const g = guests.filter(g => g.state === 'wait').sort((a,b) => a.patience - b.patience)[0]; if (g) serve(g, true); } }
+  // waiters walk the floor and serve on their own
+  onDuty('waiter').forEach(s => { const ch = staffCh.get(s.id); if (!ch || ch.busy || walking(ch)) return;
+    ch.wcd = (ch.wcd || 0) - dt; if (ch.wcd > 0) return;
+    const g = guests.filter(g => g.state === 'wait' && !g.claimed).sort((a,b) => a.patience - b.patience)[0]; if (!g) return;
+    g.claimed = true; ch.busy = true; ch.work = false;
+    walkTo(ch, route(ch.pos, {x:g.pos.x + (g.seat && g.seat.x < g.pos.x ? -0.8 : 0.8), z:g.pos.z + 0.7}), 4.6).then(() => {
+      if (g.state === 'wait') serve(g, ch); g.claimed = false; ch.cheer = 0.3; ch.wcd = 1.2;
+      walkTo(ch, route(ch.pos, slotPos(s)), 4.6).then(() => { ch.busy = false; ch.face = 0; }); }); });
   // keg runs dry now and then
   if (!n.kegEmpty && n.t > n.nextDry){ n.kegEmpty = true; n.nextDry = n.t + rand(20,30); const s = emojiSprite('🚫', '#ffffff', 1); s.position.y = 2.4; kegG.add(s); kegG.userData.sign = s;
-    coach('🍺 The <b>keg is empty</b>! Tap the keg to refill it.'); sfx.alarm(); n.dryT = barStaff ? 5 : 999; }
-  if (n.kegEmpty && barStaff){ n.dryT -= dt; if (n.dryT <= 0){ refillKeg(); } }
+    const cel = onDuty('cellarer').length; n.dryT = cel ? 1.2 : barStaff ? 6 : 999;
+    if (cel) pop({x:-4, y:3, z:-4.6}, '🛢️ On it!', '#ffc23d'); else { coach('🍺 The <b>keg is empty</b>! Tap the keg to refill it. (A 🛢️ <b>Cellar-keeper</b> would do it for you.)'); sfx.alarm(); } }
+  if (n.kegEmpty && n.dryT < 900){ n.dryT -= dt; if (n.dryT <= 0){ refillKeg(); } }
   // guest brawl
   if (!n.brawl && n.t > n.nextBrawl){ n.nextBrawl = n.t + rand(25,40); startBrawl(); }
   if (n.brawl){ n.brawlT -= dt; n.brawl.forEach((g,i) => { g.face = Math.atan2(n.brawl[1-i].pos.x - g.pos.x, n.brawl[1-i].pos.z - g.pos.z); g.cheer = 0.2; });
@@ -830,7 +849,7 @@ function updNight(dt){
   n.vsMe.forEach(e => { if (e.live === 'pending' && n.t >= e.at) spawnIntruder(e); });
   intruders.forEach(ch => { if (ch.e.live !== 'in') return; ch.alertS.position.y = 3.0 + Math.sin(n.t*10)*0.15;
     me().staff.filter(s => s.station === 'door' && !s.jailed).forEach(s => { const g = staffCh.get(s.id); if (!g || ch.guardTried.has(s.id)) return;
-      if (d2(g.pos, ch.pos) < 2.6){ ch.guardTried.add(s.id); const chance = s.type === 'bruiser' ? 0.6 : 0.4;
+      if (d2(g.pos, ch.pos) < 2.6){ ch.guardTried.add(s.id); const chance = (s.type === 'bruiser' ? 0.6 : s.type === 'watchman' ? 0.35 : 0.4) + onDuty('watchman').length*0.12;
         if (Math.random() < chance){ g.cheer = 1; catchIntruder(ch, s.name); } else pop({x:g.pos.x, y:3, z:g.pos.z}, 'Missed!', '#ffffff'); } }); });
   // my agents: a lucky-tap moment for each
   n.mine.forEach(e => { if (!e.shown && n.t >= e.at && !n.luck) showLuck(e); });
@@ -848,6 +867,7 @@ async function endNight(){
   clueItems.forEach(c => { scene.remove(c.s); scene.remove(c.glow); }); clueItems.length = 0;
   coach('🌅 Last orders! Everyone heads home…'); guests.slice().forEach(g => { if (g.state === 'wait' || g.state === 'drink' || g.state === 'fight') guestLeave(g, g.state === 'drink' ? 'happy' : 'angry'); });
   doorPivot.rotation.y = 0; nightTarget = 0; document.body.classList.remove('night'); sfx.rooster();
+  staffCh.forEach(ch => { ch.busy = false; ch.wcd = 0; });
   await wait(1200);
   // engine resolution
   const p = me();
@@ -872,7 +892,10 @@ function morning(res, n){
   const r = res.perTavern[ME], p = me();
   const lines = c => r.msgs.filter(m => m.cat === c).map(m => `<div class="rl ${m.kind}">${esc(m.text)}</div>`).join('');
   let h = `<h2 style="text-align:center">🌅 Morning after night ${S.over ? S.maxDays : S.day-1}</h2>
-    <div class="trio"><div><b>${n.served}</b>served</div><div><b style="color:var(--poison)">+${n.income}</b>earned</div><div><b style="color:var(--pink)">−${r.wages}</b>wages</div></div>
+    <div class="trio"><div><b>${n.served}</b>guests served</div><div><b style="color:var(--poison)">+${n.income}</b>earned</div><div><b style="color:var(--pink)">−${r.wages}</b>crew pay & rent</div></div>
+    <details class="rl" style="border-left-color:#ffc23d"><summary style="cursor:pointer"><b>${n.income - r.wages >= 0 ? '📈 Profit' : '📉 Loss'} tonight: ${n.income - r.wages >= 0 ? '+' : ''}${n.income - r.wages} gold</b> <span style="opacity:.7">(tap to see who got paid)</span></summary>
+      <div style="margin-top:6px;font-size:13px;line-height:1.6">${p.staff.filter(s => !s.jailed).map(s => `${STAFF[s.type].icon} ${esc(s.name)}: ${s.wage}g`).join('<br>')}<br>🏠 Tavern rent: 10g<br>
+      <span style="opacity:.75">Every night you pay each crew member their wage, plus rent. Serve more guests to earn more than you pay!</span></div></details>
     <div class="trio"><div><b>${n.caught}</b>spies caught</div><div><b>${n.escaped}</b>got away</div><div><b>${n.missed}</b>angry guests</div></div>`;
   const you = lines('you'); if (you) h += `<div class="sec">At your tavern</div>${you}`;
   if (r.newIncidents.length){ r.newIncidents.forEach(id => { const inc = p.incidents.find(i => i.id === id), cand = PP.candidates(S, ME, inc);
@@ -917,8 +940,19 @@ $('#fNight').onclick = () => {
   if (S.day === 1 && !p.plan.missions.length){ coach('First, drag a crew member onto the <b>🗺️ map</b> to send them on a mission!'); dayCoach(); return; }
   startNight();
 };
+function ensureFirstSpy(){
+  // on the first night, make sure one rival sends a spy so you can learn to catch them
+  const attacks = S.taverns.filter(t => t.isBot).some(t => t.plan.missions.some(m => m.target === ME && MISSIONS[m.type].harm));
+  if (attacks) return;
+  const t = S.taverns[2] || S.taverns[1];
+  let st = t.staff.find(x => x.type === 'pickpocket' && !x.jailed);
+  if (!st){ st = {id:S.nextId++, type:'pickpocket', name:'Snitch', quirk:'clumsy', cost:40, wage:10, loyalty:3, moleFor:null, born:false, turned:false, note:'', tell:false, jailed:0, exposed:false, idle:0, wins:0}; t.staff.push(st); }
+  PP.setMission(S, t.id, {staffId:st.id, type:'steal', target:ME});
+}
 function newGame(){
-  S = PP.createGame({rivals:3, difficulty:'normal'}); seedCrew(); syncStaff(true); phase = 'day'; hud();
+  S = PP.createGame({rivals:3, difficulty:'normal'}); seedCrew();
+  S.taverns.forEach(t => { if (t.isBot) PP.botDay(S, t.id); }); ensureFirstSpy();
+  syncStaff(true); phase = 'day'; hud();
   banner('DAY 1', '#ffc23d', 'Welcome to your tavern, boss!', 1.6); dayCoach();
 }
 $('#bStart').onclick = () => { audio(); $('#menu').style.display = 'none'; newGame(); };
