@@ -722,12 +722,21 @@ function cityMap(){
 
 // footer buttons
 $('#fHire').onclick = () => { if (phase !== 'day') return; audio(); const p = me(), max = PP.maxStaff(S,p);
-  let h = `<h2>🚪 Looking for work</h2><div class="note">Your crew: ${p.staff.length}/${max}. <b>Agents</b> (🧪🗡️💪🕵️🎻🎩) go on missions. <b>Home staff</b> (🍽️ waiter, 🛢️ cellar-keeper, 🔦 watchman, 🍲 cook, 👃 taster) work your tavern at night. Each hire has a mood and a quirk, and a few are secret moles for a rival. 🐀</div><div class="sec">At the door today</div>`;
-  if (!p.recruits.length) h += `<div class="note">Nobody else today. Come back tomorrow.</div>`;
-  p.recruits.forEach(r => { const c = PP.hireCost(S,p,r), can = p.gold >= c && p.staff.length < max;
-    h += `<div class="item"><div class="ic">${STAFF[r.type].icon}</div><div class="tx"><b>${esc(r.name)} · ${STAFF[r.type].name}</b><small>${STAFF[r.type].desc}</small>
-      <div><span class="ch">${PP.mood(r)}</span><span class="ch">${QUIRKS[r.quirk].icon} ${QUIRKS[r.quirk].name}</span><span class="ch">💰 ${r.wage}g/night</span></div><i>“${esc(r.name)} ${esc(r.note)}.”</i></div>
+  const lv = PP.levelOf(p), next = PP.LEVELS[lv], xp = p.stats.served;
+  let h = `<h2>🚪 Hire staff</h2>
+    <div class="rl good" style="font-size:15px">🏆 <b>Tavern level ${lv}</b>${next ? ` · serve <b>${next.at - xp}</b> more guests to reach level ${lv+1}
+      <div style="height:9px;border-radius:5px;background:rgba(0,0,0,.35);margin-top:6px;overflow:hidden"><div style="height:100%;width:${Math.round(100*(xp - PP.LEVELS[lv-1].at)/(next.at - PP.LEVELS[lv-1].at))}%;background:var(--poison)"></div></div>` : ' · MAX level!'}</div>
+    <div class="note">Your crew: ${p.staff.length}/${max}. <b>Agents</b> go on missions; <b>home staff</b> work your tavern at night. Same line-up every day; level up to unlock more. A few hires are secretly working for a rival. 🐀</div>`;
+  const shown = new Set();
+  p.recruits.forEach(r => { if (shown.has(r.type)) return; shown.add(r.type); const c = PP.hireCost(S,p,r), can = p.gold >= c && p.staff.length < max;
+    const more = p.recruits.filter(x => x.type === r.type).length - 1;
+    h += `<div class="item"><div class="ic">${STAFF[r.type].icon}</div><div class="tx"><b>${STAFF[r.type].name} · ${esc(r.name)}</b><small>${STAFF[r.type].desc}</small>
+      <div><span class="ch">${STAFF[r.type].mission ? '🗺️ agent' : '🏠 home staff'}</span><span class="ch">${PP.mood(r)}</span><span class="ch">${QUIRKS[r.quirk].icon} ${QUIRKS[r.quirk].name}</span><span class="ch">💰 ${r.wage}g/night</span></div><i>“${esc(r.name)} ${esc(r.note)}.”</i>${more ? '' : '<i style="opacity:.6">Last one today</i>'}</div>
       <button class="pbtn" data-h="${r.id}" ${can?'':'disabled'}>Hire<br>${c}g</button></div>`; });
+  if (!p.recruits.length) h += `<div class="note">Everyone's been hired today. More tomorrow!</div>`;
+  const locked = PP.LEVELS.slice(lv);
+  if (locked.length){ h += `<div class="sec">🔒 Unlock by levelling up</div>`;
+    locked.forEach(L => L.unlock.forEach(k => { h += `<div class="item out" style="opacity:.55"><div class="ic">${STAFF[k].icon}</div><div class="tx"><b style="text-decoration:none">${STAFF[k].name}</b><small>${STAFF[k].desc}</small></div><div class="ch">🔒 Level ${L.lv}<br>${L.at} guests</div></div>`; })); }
   h += `<div class="row"><button class="btn ghost" data-close>Close</button></div>`;
   sheet(h);
   document.querySelectorAll('#sheet [data-h]').forEach(b => b.onclick = () => { const err = PP.hire(S, ME, +b.dataset.h); if (err) return;
@@ -984,10 +993,11 @@ async function endNight(){
   const p = me();
   p.staff.forEach(s => { if (s.station === 'bar' || s.station === 'door') s.idle = -1; });     // working staff aren't idle
   n.vsMe.forEach(e => { if (e.fizzledLive){ e.refused = false; e.slept = true; } });            // never reached the target
-  const before = p.gold;
+  const before = p.gold, lvBefore = PP.levelOf(p);
   const res = PP.applyNight(S, n.roll);
   // replace the engine's crowd estimate with what you actually earned live
-  const r = res.perTavern[ME]; p.gold += n.income - r.income; r.income = n.income; r.served = n.served; p.rep = clamp(p.rep - Math.floor(n.missed/2), 0, 100);
+  const r = res.perTavern[ME]; p.gold += n.income - r.income; p.stats.served += n.served - r.served; r.income = n.income; r.served = n.served;
+  levelUp(p, lvBefore, r); if (!S.over) PP.refreshRecruits(S, ME); p.rep = clamp(p.rep - Math.floor(n.missed/2), 0, 100);
   // keep only the clues you actually picked up
   r.newIncidents.forEach(id => { const inc = p.incidents.find(i => i.id === id); const ev = n.vsMe.find(e => e.by === inc.culprit && e.type === inc.type && n.clues[e.id] !== undefined);
     const got = ev ? n.clues[ev.id] : 0; const traits = inc.clues.filter(c => c.kind === 'trait'), extra = inc.clues.filter(c => c.kind !== 'trait' && c.kind !== 'none');
@@ -999,8 +1009,14 @@ async function endNight(){
 // =====================================================================
 // MORNING
 // =====================================================================
+function levelUp(t, before, r){
+  const now = PP.levelOf(t); if (now <= before) return;
+  const news = PP.LEVELS.slice(before, now).flatMap(L => L.unlock).map(k => `${STAFF[k].icon} ${STAFF[k].name}`).join(', ');
+  r.msgs.unshift({cat:'you', kind:'good', text:`🎉 Your tavern reached LEVEL ${now}! New staff you can hire: ${news}.`}); r.levelUp = now;
+}
 function morning(res, n){
   const r = res.perTavern[ME], p = me();
+  if (r.msgs.some(m => m.text.includes('reached LEVEL'))) setTimeout(() => { banner(`LEVEL ${PP.levelOf(p)}!`, '#7cff4f', 'New staff unlocked: tap 🚪 HIRE', 2.2); sfx.win(); }, 300);
   const lines = c => r.msgs.filter(m => m.cat === c).map(m => `<div class="rl ${m.kind}">${esc(m.text)}</div>`).join('');
   let h = `<h2 style="text-align:center">🌅 Morning after night ${S.over ? S.maxDays : S.day-1}</h2>
     <div class="trio"><div><b>${n.served}</b>guests served</div><div><b style="color:var(--poison)">+${n.income}</b>earned</div><div><b style="color:var(--pink)">−${r.wages}</b>crew pay & rent</div></div>

@@ -5,6 +5,14 @@
 // =====================================================================
 const PP = (() => {
   const DAYS = 7, TUT_DAYS = 3, START_GOLD = 250, START_REP = 50, MAX_STAFF = 7;
+  // Tavern levels: serve guests to level up and unlock new kinds of staff.
+  const LEVELS = [
+    {lv:1, at:0,   unlock:['waiter','cellarer','bruiser','pickpocket','poisoner','bard']},
+    {lv:2, at:20,  unlock:['watchman','taster']},
+    {lv:3, at:50,  unlock:['cook']},
+    {lv:4, at:85,  unlock:['spy']},
+    {lv:5, at:130, unlock:['talker']}
+  ];
 
   const STAFF = {
     poisoner:  {name:'Poisoner',     icon:'🧪', cost:70, wage:12, mission:'poison', desc:'Sneaks poison into a rival keg.'},
@@ -90,6 +98,10 @@ const PP = (() => {
   const maxStaff = (s,t) => (s.tutorial && t.id === 0) ? 1 : MAX_STAFF;
   const hireCost = (s,t,r) => Math.round(r.cost * (isUnderdog(s,t) ? 0.75 : 1));
   const mood = x => MOODS[clamp(x.loyalty,1,5)];
+  const xpOf = t => t.stats.served;
+  const levelOf = t => LEVELS.filter(L => xpOf(t) >= L.at).length;
+  const unlocked = t => LEVELS.slice(0, levelOf(t)).flatMap(L => L.unlock);
+  const refreshRecruits = (s, tid, rng=Math.random) => genRecruits(s, byId(s,tid), rng);
 
   function createGame({rivals=3, difficulty='normal', tutorial=false}, rng=Math.random){
     if (tutorial) rivals = 2;
@@ -111,7 +123,7 @@ const PP = (() => {
     const base = STAFF[type], quirk = opts.quirk || pick(Object.keys(QUIRKS), rng);
     const moleFor = opts.moleFor === undefined ? null : opts.moleFor;
     const tell = moleFor !== null ? rng() < 0.65 : rng() < 0.12;
-    return {id:s.nextId++, type, name:pick(NAMES,rng), quirk, cost:base.cost + Math.round((rng()-0.5)*16) - (quirk==='clumsy'?15:0),
+    return {id:s.nextId++, type, name:pick(NAMES,rng), quirk, cost:base.cost - (quirk==='clumsy'?15:0),
       wage:base.wage, loyalty: opts.loyalty || (2 + Math.floor(rng()*3)), moleFor, born:moleFor!==null, turned:false,
       note: tell ? pick(TELLS,rng) : pick(FLAVOR[type],rng), tell, jailed:0, exposed:false, idle:0, wins:0};
   }
@@ -121,21 +133,20 @@ const PP = (() => {
       if (s.day === 1) t.recruits = [newStaff(s,'pickpocket',rng,{quirk:'steadfast',loyalty:4}), newStaff(s,'poisoner',rng,{quirk:'lucky',loyalty:4}), newStaff(s,'taster',rng,{quirk:'steadfast',loyalty:4})];
       return;
     }
-    const types = Object.keys(STAFF), rivals = s.taverns.filter(o => o.id !== t.id);
-    const n = 4 + (isUnderdog(s,t) ? 1 : 0);
-    for (let k=0;k<n;k++){
-      const sly = rivals.find(o => o.pers === 'sly');
+    // the same line-up every day: two people for every kind of staff your level has unlocked
+    const rivals = s.taverns.filter(o => o.id !== t.id), sly = rivals.find(o => o.pers === 'sly');
+    unlocked(t).forEach(type => { for (let k=0;k<2;k++){
       let moleFor;
-      if (!s.tutorial && s.day > 1 && rng() < 0.05 + (sly ? 0.02 : 0)) moleFor = (sly && rng() < 0.6) ? sly.id : pick(rivals, rng).id;
-      t.recruits.push(newStaff(s, pick(types,rng), rng, {moleFor}));
-    }
+      if (!s.tutorial && s.day > 1 && rng() < 0.03 + (sly ? 0.015 : 0)) moleFor = (sly && rng() < 0.6) ? sly.id : pick(rivals, rng).id;
+      t.recruits.push(newStaff(s, type, rng, {moleFor}));
+    } });
   }
 
   // ---------------- daytime actions ----------------
   function hire(s, tid, rid){
     const t = byId(s,tid), r = t.recruits.find(x => x.id === rid);
     if (!r) return 'They already left';
-    if (t.staff.length >= maxStaff(s,t)) return s.tutorial && tid===0 ? 'Just one hire in your first game!' : 'Your crew is full (5)';
+    if (t.staff.length >= maxStaff(s,t)) return s.tutorial && tid===0 ? 'Just one hire in your first game!' : `Your crew is full (${maxStaff(s,t)})`;
     const c = hireCost(s,t,r); if (t.gold < c) return 'Not enough gold';
     t.gold -= c; t.recruits = t.recruits.filter(x => x !== r); t.staff.push(r); return null;
   }
@@ -325,7 +336,7 @@ const PP = (() => {
     // customers and money
     const n = s.taverns.length, crowd = 30 + 15*n;
     const under = new Set(s.taverns.filter(t => isUnderdog(s,t)).map(t => t.id));
-    const ap = s.taverns.map(t => { let a = 10 + t.ale*8 + t.rep*0.4 + active(t,'bard')*12 + active(t,'waiter')*6 + active(t,'cook')*6 + PRICES[t.price].appeal + (under.has(t.id) ? 15 : 0) - (t.id === leaderId(s) && s.taverns.length > 2 ? 6 : 0);
+    const ap = s.taverns.map(t => { let a = 10 + t.ale*8 + t.rep*0.4 + Math.min(2,active(t,'bard'))*12 + Math.min(2,active(t,'waiter'))*5 + Math.min(1,active(t,'cook'))*5 + PRICES[t.price].appeal + (under.has(t.id) ? 15 : 0) - (t.id === leaderId(s) && s.taverns.length > 2 ? 6 : 0);
       if (t.flags.poisoned) a *= 0.5; if (t.flags.brawled) a *= 0.75; return Math.max(2, a); });
     const tot = ap.reduce((a,b)=>a+b,0);
     s.taverns.forEach((t,i) => {
@@ -402,9 +413,10 @@ const PP = (() => {
     if (t.leaks && !t.staff.some(x => x.type==='spy')) pref.unshift('spy');
     const w = r => (pref.indexOf(r.type) >= 0 ? 4 - Math.min(3, pref.indexOf(r.type)) : 0) + rng()*1.5 - (r.quirk==='clumsy'||r.quirk==='drunk' ? 0.8 : 0);
     if (s.tutorial && tid === 1 && s.day === 1 && !t.staff.some(x => x.type==='pickpocket')) t.staff.push(newStaff(s,'pickpocket',rng,{quirk:'steadfast',loyalty:4}));
+    const seen = shuffle(t.recruits.slice(), rng).slice(0, 5);   // bots only meet a few job-seekers each day
     for (let g=0; g<4 && t.staff.length < want; g++){
       const reserve = 60 + t.staff.reduce((a,x)=>a+x.wage,0);
-      const opts = t.recruits.filter(r => hireCost(s,t,r) <= t.gold - reserve && !(r.tell && rng() < care));
+      const opts = seen.filter(r => t.recruits.includes(r) && hireCost(s,t,r) <= t.gold - reserve && !(r.tell && rng() < care));
       if (!opts.length) break;
       opts.sort((a,b) => w(b) - w(a)); hire(s, tid, opts[0].id);
     }
@@ -446,7 +458,7 @@ const PP = (() => {
   return {DAYS, TUT_DAYS, MAX_STAFF, STAFF, MISSIONS, QUIRKS, MOODS, PRICES, CREWS, TRAITS, PERS,
     createGame, hire, fire, upgradeAle, setPrice, setBribe, setMission, clearMission, missionError, riskFor, isRevenge,
     accuse, candidates, rollNight, applyNight, outcome, botDay, ranking, score, aleCost, wealthTier, active, leaderId, isUnderdog,
-    hireCost, maxStaff, mood};
+    hireCost, maxStaff, mood, LEVELS, levelOf, unlocked, refreshRecruits};
 })();
 if (typeof module !== 'undefined') module.exports = PP;
 if (typeof window !== 'undefined') window.PP = PP;

@@ -176,13 +176,14 @@ function Host(){
       S.taverns[p.seat].staff.forEach(x => { if ((r.working||[]).includes(x.id)) x.idle = -1; });
     });
     const vs = {}; humans().forEach(p => vs[p.pid] = harmTo(p.seat).map(e => ({id:e.id, by:e.by, type:e.type})));
+    const lv0 = {}; humans().forEach(p => lv0[p.pid] = PP.levelOf(S.taverns[p.seat]));
     const res = PP.applyNight(S, roll);
     humans().forEach(p => {
       const r = H.nres[p.pid], t = S.taverns[p.seat], R = res.perTavern[p.seat];
       let n = {served:R.served, income:R.income, caught:0, escaped:0, missed:0};
       if (r && !r.skip){
         const inc = Math.max(0, Math.min(5000, +r.income || 0)), missed = Math.max(0, +r.missed || 0);
-        t.gold += inc - R.income; t.gold = Math.max(0, Math.round(t.gold)); R.income = inc; R.served = +r.served || 0; t.rep = Math.max(0, Math.min(100, t.rep - Math.floor(missed/2)));
+        t.gold += inc - R.income; t.gold = Math.max(0, Math.round(t.gold)); t.stats.served += Math.max(0, Math.min(60, +r.served || 0)) - R.served; R.income = inc; R.served = +r.served || 0; t.rep = Math.max(0, Math.min(100, t.rep - Math.floor(missed/2)));
         n = {served:R.served, income:inc, caught:+r.caught?.length || 0, escaped:+r.escaped || 0, missed};
         R.newIncidents.forEach(id => { const ic = t.incidents.find(i => i.id === id); if (!ic) return;
           const ev = vs[p.pid].find(e => e.by === ic.culprit && e.type === ic.type); const got = ev ? (+(r.clues||{})[ev.id] || 0) : 0;
@@ -190,6 +191,9 @@ function Host(){
           ic.clues = [...traits.slice(0, got), ...extra]; if (!ic.clues.length) ic.clues = [{kind:'none', text:'You didn\'t pick up any clues.', points:null, icon:'🌫️'}]; });
       }
       p.n = n;
+      const lv = PP.levelOf(t);
+      if (lv > lv0[p.pid]) R.msgs.unshift({cat:'you', kind:'good', text:`🎉 Your tavern reached LEVEL ${lv}! New staff you can hire: ${PP.LEVELS.slice(lv0[p.pid], lv).flatMap(L => L.unlock).map(k => PP.STAFF[k].icon + ' ' + PP.STAFF[k].name).join(', ')}.`});
+      if (!S.over) PP.refreshRecruits(S, p.seat);
     });
     if (!S.over){ S.taverns.forEach(t => { if (t.isBot) PP.botDay(S, t.id); }); }
     H.phase = S.over ? 'over' : 'day'; H.ready = {}; H.deadline = now() + (DAY_SEC(S.day) + 150)*1000;
