@@ -6,7 +6,8 @@ Run a rival tavern in the city of Ashveil. Hire shady staff, send them to poison
 
 ## Play
 - **Live:** https://hratika-23.github.io/Poisoned-Pints/
-- `/prototype/` – the new close-up 3D day screen (drag crew onto rivals, drag coins onto the Captain, tap crew to talk, night preview)
+- `/play/` – **the main game**: your 3D tavern room. Day: drag crew to the bar, door or mission map. Night (live): serve guests, catch hooded spies, collect clues. Morning: results + evidence board.
+- `/prototype/` – the first close-up 3D day screen (drag crew onto rivals, drag coins onto the Captain, tap crew to talk, night preview)
 - `/game/` – the full playable game: 7 nights vs bots, tutorial mode, case file, crew moods & quirks, comeback mechanics
 
 ## Project layout
