@@ -5,7 +5,7 @@
 'use strict';
 const PFX = 'poisonedpints/v1/';
 const qs = new URLSearchParams(location.search);
-const BROKERS = qs.get('broker') ? [qs.get('broker')] : ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084/mqtt'];
+const BROKERS = qs.get('broker') ? [qs.get('broker')] : ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084/mqtt', 'wss://mqtt.eclipseprojects.io/mqtt'];
 const CODE_CH = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const DAY_SEC = d => (d === 1 ? 180 : 140);
 const NIGHT_WAIT = 115;                 // seconds the host waits for night results
