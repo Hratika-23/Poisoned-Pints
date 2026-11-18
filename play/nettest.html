@@ -1,0 +1,15 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Connection test</title></head>
+<body style="font:18px sans-serif;background:#2a1640;color:#fff;padding:20px"><h2>🍺 Poisoned Pints connection test</h2><div id="o">Testing…</div>
+<script src="engine.js"></script><script src="mqtt.min.js"></script><script src="net.js"></script>
+<script>
+const o = document.getElementById('o'), log = t => o.innerHTML += '<br>' + t;
+(async () => {
+  try {
+    const t0 = Date.now(); const H = NET.Host(); const code = await H.create('hostTEST01', 'Tester');
+    log('✅ Room server reached: ' + H.L.url + ' (' + (Date.now()-t0) + ' ms), code ' + code);
+    const P = NET.Player(); let got = false; P.on.sync = () => { got = true; log('✅ Player joined through the relay (' + (Date.now()-t0) + ' ms)'); };
+    await P.join(code, 'Friend', 'plyrTEST02');
+    setTimeout(() => { if (!got) log('❌ No reply from the room'); else log('🎉 Multiplayer connection works'); H.close(); P.leave(); }, 6000);
+  } catch(e){ log('❌ ' + e.message); }
+})();
+</script></body></html>
