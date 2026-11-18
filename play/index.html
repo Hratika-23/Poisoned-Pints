@@ -96,12 +96,70 @@ body.night #nightBar{display:flex} body.night .fb{display:none}
 .rl.good{border-left-color:var(--poison)} .rl.bad{border-left-color:var(--pink)} .rl.intel{border-left-color:#b9a6ff} .rl.news{border-left-color:var(--sky)}
 .dotc{width:14px;height:14px;border-radius:50%;display:inline-block;border:2px solid rgba(0,0,0,.4);vertical-align:-2px}
 
-/* menu */
-#menu{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;
-  background:radial-gradient(ellipse at 50% 35%,#6b3fa0,#24123f 75%)}
+/* menu: animated night town */
+#menu{position:fixed;inset:0;z-index:30;overflow-x:hidden;overflow-y:auto;background:#140a2e;touch-action:pan-y}
+#menu.sub .title{font-size:clamp(34px,10vw,56px)}
+#menu .bgsky{position:fixed;inset:0;background:linear-gradient(180deg,#0d0726 0%,#2a1460 45%,#7b3f8f 78%,#e0708a 100%);animation:dusk 14s ease-in-out infinite alternate}
+@keyframes dusk{to{filter:hue-rotate(-18deg) brightness(1.08)}}
+#menu .star{position:fixed;width:3px;height:3px;border-radius:50%;background:#fff;animation:tw 2.4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.15;transform:scale(.6)}}
+#menu .moon{position:fixed;top:6%;right:8%;width:min(20vw,110px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fffbe0,#ffe08a 60%,#f5c35a);
+  box-shadow:0 0 60px 20px rgba(255,224,138,.35);animation:bob 6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px)}}
+#menu .town{position:fixed;left:0;right:0;bottom:0;height:30vh;min-height:170px}
+#menu .town svg{width:100%;height:100%;display:block}
+#menu .win{animation:flick 3s infinite} #menu .win:nth-child(3n){animation-delay:1.1s} #menu .win:nth-child(4n){animation-delay:2s}
+@keyframes flick{0%,100%{opacity:1}45%{opacity:.55}50%{opacity:1}75%{opacity:.8}}
+#menu .smoke{animation:smoke 4s linear infinite;opacity:0}
+@keyframes smoke{0%{transform:translateY(0) scale(.6);opacity:.7}100%{transform:translateY(-60px) scale(1.6);opacity:0}}
+#menu .float{position:fixed;bottom:-60px;opacity:.85;font-size:30px;animation:rise linear infinite;filter:drop-shadow(0 4px 6px rgba(0,0,0,.4));pointer-events:none}
+#menu .bub{position:fixed;bottom:-20px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#e9ffd9,#7cff4f 60%,#3f9b22);opacity:.7;animation:rise linear infinite;pointer-events:none}
+@keyframes rise{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-115vh) rotate(360deg);opacity:0}}
+#menu .walker{position:fixed;bottom:calc(30vh*0.2);font-size:32px;animation:sneak 11s linear infinite;filter:drop-shadow(0 3px 0 rgba(0,0,0,.5))}
+@keyframes sneak{0%{left:-50px;transform:scaleX(1)}45%{left:105vw;transform:scaleX(1)}50%{left:105vw;transform:scaleX(-1)}95%{left:-50px;transform:scaleX(-1)}100%{left:-50px}}
+#mWrap{position:relative;z-index:5;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:12px;padding:calc(20px + env(safe-area-inset-top)) 18px calc(20px + 16vh)}
 .title{font-family:'Lilita One';font-size:clamp(54px,15vw,100px);line-height:.88;text-align:center;color:var(--poison);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;
-  text-shadow:0 6px 0 var(--ink);transform:rotate(-3deg)}
+  text-shadow:0 6px 0 var(--ink),0 0 40px rgba(124,255,79,.45);animation:wob 3s ease-in-out infinite}
 .title span{display:block;color:var(--gold)}
+@keyframes wob{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(2deg) scale(1.04)}}
+.tag{font-weight:900;text-align:center;text-shadow:0 2px 0 var(--ink)}
+.mbtn{display:block;width:min(340px,88vw);text-align:center;font-family:'Lilita One';font-size:26px;padding:13px;border-radius:20px;color:var(--ink);
+  background:linear-gradient(180deg,#d9ffb8,var(--poison));box-shadow:0 7px 0 #3f9b22}
+.mbtn small{display:block;font-family:Nunito;font-size:13px;opacity:.8}
+.mbtn.gold{background:linear-gradient(180deg,#fff27a,var(--gold));box-shadow:0 7px 0 #b4741a}
+.mbtn.sky{background:linear-gradient(180deg,#c9f1ff,var(--sky));box-shadow:0 7px 0 #1f7ea3}
+.mbtn.dim{background:rgba(255,255,255,.14);color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.35);font-size:19px;padding:10px}
+.mbtn:active{transform:translateY(4px)}
+.mbtn:disabled{opacity:.5}
+.mcard{width:min(380px,92vw);background:rgba(26,15,46,.82);border:2px solid rgba(255,255,255,.16);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:11px;align-items:center;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);backdrop-filter:blur(4px)}
+.mcard h3{margin:0;font-family:'Lilita One';font-weight:400;font-size:24px;color:var(--gold);text-shadow:0 3px 0 var(--ink)}
+.minp{width:100%;font:900 20px Nunito;padding:11px 14px;border-radius:14px;border:3px solid rgba(255,255,255,.25);background:rgba(0,0,0,.35);color:#fff;text-align:center;outline:none}
+.minp:focus{border-color:var(--gold)}
+.minp.code{font-family:'Lilita One';font-size:30px;letter-spacing:.2em;text-transform:uppercase}
+.mmsg{font-weight:900;font-size:14px;text-align:center;min-height:18px;color:#ffd98a}
+.mmsg.err{color:#ff8fa8}
+.bigcode{font-family:'Lilita One';font-size:46px;letter-spacing:.18em;color:var(--poison);text-shadow:0 4px 0 var(--ink);line-height:1}
+.plist{width:100%;display:flex;flex-direction:column;gap:6px}
+.pl{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.08);font-weight:900}
+.pl .nm{flex:1}
+.pl .x{background:none;color:#ff8fa8;font-size:18px}
+.step{display:flex;align-items:center;gap:12px;font-weight:900}
+.step button{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.15);font-size:22px;font-weight:900}
+.hidden{display:none!important}
+/* multiplayer in-game */
+#hTime{display:none} body.mp #hTime{display:block}
+body.mp .chip{font-size:15px;padding:4px 8px} body.mp #hdr{gap:5px}
+#wait{position:fixed;left:50%;top:calc(var(--hdr) + 14px);transform:translateX(-50%);z-index:12;width:min(400px,92vw);background:#fff7e3;color:var(--ink);border-radius:18px;padding:12px 14px;
+  box-shadow:0 6px 0 rgba(0,0,0,.3);display:none;font-weight:900;text-align:center}
+#wait.on{display:block}
+#wait .wt{font-family:'Lilita One';font-size:21px;margin-bottom:6px}
+#wait .wp{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+#wait .wp span{padding:3px 9px;border-radius:99px;background:#efe4ff;font-size:13px}
+#wait .wp span.ok{background:#c9ffb0}
+#wait .spin{display:inline-block;animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#netPill{position:fixed;left:50%;bottom:calc(var(--ftr) + 8px);transform:translateX(-50%);z-index:40;background:#ff4d6d;color:#fff;font-weight:900;font-size:13px;padding:6px 12px;border-radius:99px;display:none;box-shadow:0 3px 0 rgba(0,0,0,.3)}
 #err{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:var(--ink);padding:30px;text-align:center;font-weight:900;z-index:50}
 </style>
 </head>
@@ -111,6 +169,7 @@ body.night #nightBar{display:flex} body.night .fb{display:none}
 <div id="hdr">
   <button class="ibtn" id="bMenu">☰</button>
   <div class="chip" id="hDay">☀️ DAY 1</div>
+  <div class="chip" id="hTime">⏳ 3:00</div>
   <div style="flex:1"></div>
   <div class="chip" id="hGold">💰 250</div>
   <div class="chip" id="hRep">⭐ 50</div>
@@ -129,16 +188,67 @@ body.night #nightBar{display:flex} body.night .fb{display:none}
 <div id="luck"><button id="luckBtn">⭐</button><span id="luckT">Tap for luck!</span></div>
 <div id="banner"></div>
 <div id="sheetBg"></div><div id="sheet"></div>
+<div id="wait"><div class="wt"><span class="spin">⏳</span> <span id="waitT">Waiting…</span></div><div class="note" id="waitS" style="opacity:.75"></div><div class="wp" id="waitP"></div></div>
+<div id="netPill">📶 Reconnecting…</div>
 <div id="menu">
-  <div class="title">Poisoned<span>Pints</span></div>
-  <div style="font-weight:900;text-align:center;text-shadow:0 2px 0 var(--ink)">Run your tavern. Catch the spies.<br>Ruin your rivals. 😈</div>
-  <button class="btn green" id="bStart" style="font-size:24px;padding:14px 34px">▶ PLAY</button>
-  <div class="note">7 days & nights · 3 rival taverns · about 20 minutes</div>
+  <div class="bgsky"></div><div class="moon"></div>
+  <div class="town"><svg viewBox="0 0 1000 300" preserveAspectRatio="xMidYMax slice">
+    <g fill="#1d0f38"><rect x="0" y="210" width="1000" height="90"/>
+      <polygon points="20,210 20,120 90,70 160,120 160,210"/><rect x="120" y="60" width="18" height="40"/>
+      <polygon points="170,210 170,150 230,105 290,150 290,210"/>
+      <polygon points="300,210 300,95 380,40 460,95 460,210"/><rect x="420" y="30" width="20" height="45"/>
+      <polygon points="470,210 470,140 530,95 590,140 590,210"/>
+      <polygon points="600,210 600,110 680,55 760,110 760,210"/><rect x="715" y="45" width="18" height="40"/>
+      <polygon points="770,210 770,145 835,100 900,145 900,210"/>
+      <polygon points="905,210 905,125 955,90 1005,125 1005,210"/></g>
+    <g fill="#ffd36b"><rect class="win" x="45" y="140" width="22" height="26" rx="3"/><rect class="win" x="105" y="140" width="22" height="26" rx="3"/>
+      <rect class="win" x="215" y="160" width="20" height="24" rx="3"/><rect class="win" x="330" y="120" width="26" height="30" rx="3"/><rect class="win" x="405" y="120" width="26" height="30" rx="3"/>
+      <rect class="win" x="368" y="165" width="26" height="30" rx="3"/><rect class="win" x="515" y="155" width="20" height="24" rx="3"/><rect class="win" x="630" y="135" width="24" height="28" rx="3"/>
+      <rect class="win" x="705" y="135" width="24" height="28" rx="3"/><rect class="win" x="815" y="160" width="20" height="24" rx="3"/><rect class="win" x="940" y="150" width="20" height="24" rx="3"/></g>
+    <g fill="#7cff4f"><rect class="win" x="250" y="160" width="20" height="24" rx="3"/><rect class="win" x="850" y="160" width="20" height="24" rx="3"/></g>
+    <g fill="rgba(230,220,255,.6)"><circle class="smoke" cx="129" cy="55" r="10"/><circle class="smoke" cx="430" cy="25" r="11" style="animation-delay:1.3s"/><circle class="smoke" cx="724" cy="40" r="10" style="animation-delay:2.4s"/></g>
+  </svg></div>
+  <div class="walker">🥷</div><div class="walker" style="animation-delay:-1.4s">💂</div>
+  <div id="mWrap">
+    <div class="title">Poisoned<span>Pints</span></div>
+    <div class="tag" id="mTag">Run your tavern. Catch the spies.<br>Ruin your rivals. 😈</div>
+    <!-- main -->
+    <div id="mMain" style="display:contents">
+      <button class="mbtn" id="bStart">▶ PLAY<small>you vs 3 sneaky bots · about 20 min</small></button>
+      <button class="mbtn sky" id="bFriends">🌐 PLAY WITH FRIENDS<small>2–5 players, each on their own phone</small></button>
+      <button class="mbtn gold hidden" id="bRejoin">↩️ REJOIN ROOM</button>
+    </div>
+    <!-- friends: name + create/join -->
+    <div class="mcard hidden" id="mFriends">
+      <h3>🌐 Play with friends</h3>
+      <input class="minp" id="inName" maxlength="14" placeholder="Your name" autocomplete="off">
+      <button class="mbtn gold" id="bCreate">🏠 CREATE A ROOM<small>you get a code to send your friends</small></button>
+      <div class="note">— or join a friend —</div>
+      <input class="minp code" id="inCode" maxlength="5" placeholder="CODE" autocomplete="off" autocapitalize="characters">
+      <button class="mbtn" id="bJoin">🔑 JOIN ROOM</button>
+      <div class="mmsg" id="fMsg"></div>
+      <button class="mbtn dim" id="bBack1">← Back</button>
+    </div>
+    <!-- lobby -->
+    <div class="mcard hidden" id="mLobby">
+      <div class="note">ROOM CODE</div>
+      <div class="bigcode" id="lCode">-----</div>
+      <button class="mbtn sky" id="bShare" style="font-size:19px;padding:10px">📤 Send invite to friends</button>
+      <div class="sec" style="margin:4px 0 0">Players</div>
+      <div class="plist" id="lPlayers"></div>
+      <div class="step" id="lBots"><button id="botM">−</button><span id="botN">🤖 2 bots</span><button id="botP">+</button></div>
+      <button class="mbtn" id="bGo">▶ START GAME</button>
+      <div class="mmsg" id="lMsg"></div>
+      <button class="mbtn dim" id="bLeave">Leave room</button>
+    </div>
+  </div>
 </div>
 <div id="err">The game didn't load. Check your connection and reload.</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="engine.js"></script>
+<script src="mqtt.min.js"></script>
+<script src="net.js"></script>
 <script>
 (function(){
 'use strict';
@@ -440,7 +550,7 @@ const sfx = { pick(){ tone(520,.08,'square',.05,780); }, drop(){ tone(780,.1,'sq
 // =====================================================================
 // GAME STATE (rules come from engine.js)
 // =====================================================================
-const ME = 0, STAFF = PP.STAFF, MISSIONS = PP.MISSIONS, QUIRKS = PP.QUIRKS, TRAITS = PP.TRAITS;
+let ME = 0; const STAFF = PP.STAFF, MISSIONS = PP.MISSIONS, QUIRKS = PP.QUIRKS, TRAITS = PP.TRAITS;
 let S = null, phase = 'menu';
 const staffCh = new Map();      // staff id -> character
 const me = () => S.taverns[ME];
@@ -469,7 +579,7 @@ function syncStaff(instant){
   const p = me(), keep = new Set();
   p.staff.forEach(st => {
     keep.add(st.id); if (!st.station) st.station = 'rest';
-    let ch = staffCh.get(st.id);
+    let ch = staffCh.get(st.id); if (ch) ch.data = st;
     if (!ch){ ch = makeChibi(LOOKS[st.type]); ch.data = st; const hit = new THREE.Mesh(G.cyl(0.8,0.8,2.6,10), new THREE.MeshBasicMaterial({visible:false})); hit.position.y = 1.2; ch.root.add(hit); ch.hit = hit; hit.userData.ch = ch;
       ch.badge = emojiSprite(STAFF[st.type].icon, '#ffffff', 0.62); ch.badge.position.set(0.7, 2.9, 0); ch.root.add(ch.badge);
       const door = HUB.OUT; ch.pos = instant ? {...slotPos(st)} : {x:door.x, z:door.z}; ch.root.position.set(ch.pos.x, 0, ch.pos.z); scene.add(ch.root); staffCh.set(st.id, ch); }
@@ -688,11 +798,11 @@ let N = null;
 const guests = [], intruders = [], clueItems = [];
 const CUST_BODY = [0xe74c3c,0x3498db,0x9b59b6,0x1abc9c,0xf39c12,0xd35400,0x27ae60,0xe84393,0x6c5ce7,0x00b894];
 const CUST_SKIN = [0xf5c6a0,0xe0ac69,0xc68642,0x8d5524,0xffdbac,0x9be37a];
-async function startNight(){
+async function startNight(given){
   const p = me();
   phase = 'night'; closeBubbles(); hideHand(); document.body.classList.add('night'); nightTarget = 1; sfx.owl();
   // the engine decides every tavern's moves; attacks on YOU are played live
-  const roll = PP.rollNight(S);
+  const roll = given || PP.rollNight(S);
   const vsMe = roll.events.filter(e => e.target === ME && e.by !== ME && MISSIONS[e.type].harm && !e.foiled && !e.refused && !e.slept);
   const mine = roll.events.filter(e => e.by === ME);
   N = {roll, t:0, served:0, missed:0, income:0, caught:0, escaped:0, spawn:2, kegEmpty:false, nextDry:rand(18,30), brawl:null, nextBrawl:rand(28,45),
@@ -869,6 +979,7 @@ async function endNight(){
   doorPivot.rotation.y = 0; nightTarget = 0; document.body.classList.remove('night'); sfx.rooster();
   staffCh.forEach(ch => { ch.busy = false; ch.wcd = 0; });
   await wait(1200);
+  if (MP.on){ mpNightDone(n); return; }
   // engine resolution
   const p = me();
   p.staff.forEach(s => { if (s.station === 'bar' || s.station === 'door') s.idle = -1; });     // working staff aren't idle
@@ -911,24 +1022,25 @@ function morning(res, n){
 }
 function startDay(){
   phase = 'day'; N = null;
-  S.taverns.forEach(t => { if (t.isBot) PP.botDay(S, t.id); });
+  if (!MP.on) S.taverns.forEach(t => { if (t.isBot) PP.botDay(S, t.id); });
   me().staff.forEach(s => { const ch = staffCh.get(s.id); if (ch && !ch.root.visible && !s.jailed){ ch.pos = {...HUB.OUT}; ch.root.position.set(ch.pos.x, 0, ch.pos.z); }
     if (!s.station || s.station === 'map') s.station = 'rest'; });
   syncStaff(); hud();
   banner(`DAY ${S.day}`, '#ffc23d', S.day === S.maxDays ? 'The final day!' : 'Plan your moves', 1.4);
   const inbox = me().inbox.splice(0); if (inbox.length) setTimeout(() => pop({x:0, y:3, z:0}, inbox[0].text.slice(0, 40) + '…', '#ffffff'), 1500);
   dayCoach();
+  if (MP.on) mpDayClock();
 }
 function endGame(){
   phase = 'end'; const rank = PP.ranking(S), pos = rank.findIndex(t => t.id === ME) + 1;
   if (pos === 1){ sfx.win(); owner.cheer = 5; }
-  const hits = []; S.history.forEach(nn => nn.events.forEach(e => { if (e.target === ME && e.by !== ME && MISSIONS[e.type].harm) hits.push(`Night ${nn.day}: ${tname(e.by)} tried to ${MISSIONS[e.type].name.toLowerCase()} you.`); }));
+  const hits = []; S.history.forEach(nn => nn.events.forEach(e => { if (e.target === ME && e.by !== ME && MISSIONS[e.type].harm) hits.push(`Night ${nn.day}: ${tname(e.by)} sent ${MISSIONS[e.type].icon} "${MISSIONS[e.type].name}" at you (${e.outcome}).`); }));
   const moles = me().staff.filter(s => s.moleFor !== null).map(s => `${s.name} was secretly working for ${tname(s.moleFor)}!`);
   sheet(`<h2 style="text-align:center;font-size:32px">${pos===1?'🏆 YOU RULE ASHVEIL!':pos===2?'🥈 So close!':'🍺 Last orders…'}</h2>
-    ${rank.map((t,i) => `<div class="item" style="${t.id===ME?'outline:2px solid var(--gold)':''}"><div class="ic" style="font-family:Lilita One">${i+1}</div><div class="tx"><b>${dotOf(t.id)} ${t.id===ME?'You':esc(t.name)}</b><small>💰 ${t.gold} · ⭐ ${t.rep}${t.isBot?` · ${PP.PERS[t.pers].label}`:''}</small></div><b style="font-family:Lilita One;font-size:20px;color:var(--gold)">${PP.score(t)}</b></div>`).join('')}
+    ${rank.map((t,i) => `<div class="item" style="${t.id===ME?'outline:2px solid var(--gold)':''}"><div class="ic" style="font-family:Lilita One">${i+1}</div><div class="tx"><b>${dotOf(t.id)} ${t.id===ME?'You':esc(t.name)}</b><small>💰 ${t.gold} · ⭐ ${t.rep}${t.isBot?` · 🤖 ${PP.PERS[t.pers].label}`:' · 🙂 player'}</small></div><b style="font-family:Lilita One;font-size:20px;color:var(--gold)">${PP.score(t)}</b></div>`).join('')}
     <div class="sec">🕵️ The truth revealed</div>${[...moles.map(t=>`<div class="rl bad">🐀 ${esc(t)}</div>`), ...hits.map(t=>`<div class="rl">${esc(t)}</div>`)].join('') || '<div class="rl">Nobody touched your tavern. Suspicious…</div>'}
     <div class="row"><button class="btn green" id="again">PLAY AGAIN</button></div>`);
-  $('#sheet').dataset.lock = '1'; $('#again').onclick = () => location.reload();
+  $('#sheet').dataset.lock = '1'; $('#again').onclick = () => { if (MP.on){ NET.store.del('pp_mp'); location.href = location.pathname + '?mp'; } else location.reload(); };
 }
 
 // =====================================================================
@@ -937,7 +1049,8 @@ function endGame(){
 $('#fNight').onclick = () => {
   if (phase !== 'day') return; audio();
   const p = me(), idle = p.staff.filter(s => s.station === 'rest' && !s.jailed);
-  if (S.day === 1 && !p.plan.missions.length){ coach('First, drag a crew member onto the <b>🗺️ map</b> to send them on a mission!'); dayCoach(); return; }
+  if (S.day === 1 && !p.plan.missions.length && !MP.forced){ coach('First, drag a crew member onto the <b>🗺️ map</b> to send them on a mission!'); dayCoach(); return; }
+  if (MP.on) return mpReady();
   startNight();
 };
 function ensureFirstSpy(){
@@ -955,15 +1068,190 @@ function newGame(){
   syncStaff(true); phase = 'day'; hud();
   banner('DAY 1', '#ffc23d', 'Welcome to your tavern, boss!', 1.6); dayCoach();
 }
+// =====================================================================
+// MENU (animated) + MULTIPLAYER GLUE
+// =====================================================================
+(function decorateMenu(){
+  const m = $('#menu');
+  for (let i=0;i<55;i++){ const s = document.createElement('div'); s.className = 'star'; s.style.left = Math.random()*100+'%'; s.style.top = Math.random()*60+'%';
+    s.style.animationDelay = (Math.random()*2.4)+'s'; s.style.opacity = .4 + Math.random()*.6; m.insertBefore(s, $('#mWrap')); }
+  const things = ['🍺','🧪','💰','🗡️','🕵️','☠️','🪙','🍻','🎻','🔦'];
+  for (let i=0;i<12;i++){ const f = document.createElement('div'); f.className = 'float'; f.textContent = things[i % things.length];
+    f.style.left = (Math.random()*92)+'%'; f.style.animationDuration = (9 + Math.random()*9)+'s'; f.style.animationDelay = (-Math.random()*16)+'s'; f.style.fontSize = (22 + Math.random()*18)+'px'; m.insertBefore(f, $('#mWrap')); }
+  for (let i=0;i<16;i++){ const b = document.createElement('div'); b.className = 'bub'; const z = 6 + Math.random()*16; b.style.width = b.style.height = z+'px';
+    b.style.left = (Math.random()*100)+'%'; b.style.animationDuration = (6 + Math.random()*8)+'s'; b.style.animationDelay = (-Math.random()*12)+'s'; m.insertBefore(b, $('#mWrap')); }
+})();
+const MP = {on:false, P:null, H:null, log:[], stage:null, got:{}, inGame:false, pending:null, clock:0, clockT:null, forced:false, status:null};
+// every day action on your own tavern is recorded and replayed by the host
+['hire','fire','upgradeAle','setBribe','setMission','clearMission','accuse','setPrice'].forEach(fn => { const f = PP[fn];
+  PP[fn] = function(s, tid, ...a){ const r = f.call(PP, s, tid, ...a); if (MP.on && s === S && tid === ME && MP.stage === 'day') MP.log.push([fn, ...JSON.parse(JSON.stringify(a))]); return r; }; });
+
+const screens = id => { ['mMain','mFriends','mLobby'].forEach(x => $('#'+x).classList.toggle('hidden', x !== id)); $('#mMain').style.display = id === 'mMain' ? 'contents' : 'none'; $('#mTag').style.display = id === 'mMain' ? '' : 'none'; $('#menu').classList.toggle('sub', id !== 'mMain'); };
+const fmsg = (t, err) => { $('#fMsg').textContent = t; $('#fMsg').classList.toggle('err', !!err); };
+const lmsg = (t, err) => { $('#lMsg').textContent = t; $('#lMsg').classList.toggle('err', !!err); };
+const myPid = () => { let p = null; try { p = sessionStorage.getItem('pp_pid'); } catch(e){} if (!p){ p = NET.rid(10); try { sessionStorage.setItem('pp_pid', p); } catch(e){} } return p; };
+$('#inName').value = NET.store.get('pp_name') || '';
+const getName = () => { const n = $('#inName').value.trim().replace(/[<>]/g, ''); if (!n){ fmsg('Type your name first 🙂', true); $('#inName').focus(); return null; } NET.store.set('pp_name', n); return n; };
+
 $('#bStart').onclick = () => { audio(); $('#menu').style.display = 'none'; newGame(); };
+$('#bFriends').onclick = () => { audio(); screens('mFriends'); fmsg(''); };
+$('#bBack1').onclick = () => screens('mMain');
+$('#inCode').oninput = e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); };
+
+async function mpConnect(code, name, url){
+  const P = NET.Player(); MP.P = P; MP.on = true;
+  P.on.status = mpStatus; P.on.sync = mpSync; P.on.day = mpDay; P.on.night = mpNight; P.on.morning = mpMorning;
+  P.on.nope = d => { NET.store.del('pp_mp'); MP.on = false; P.leave(); screens('mFriends'); fmsg(d.why, true); $('#menu').style.display = ''; };
+  P.on.link = s => { $('#netPill').style.display = s === 'up' ? 'none' : 'block'; };
+  P.on.tick = d => { const up = P.L && P.L.c && P.L.c.connected, lost = !!MP.status && d.hostAge > 16000 && MP.stage !== 'over';
+    $('#netPill').style.display = (!up || lost) ? 'block' : 'none'; $('#netPill').textContent = !up ? '📶 Reconnecting…' : '📶 Lost the host… waiting for them'; };
+  await P.join(code, name, myPid(), url);
+}
+$('#bCreate').onclick = async () => { audio(); const name = getName(); if (!name) return;
+  $('#bCreate').disabled = true; fmsg('Opening your tavern… 🏠');
+  try {
+    const H = NET.Host(); MP.H = H; const code = await H.create(myPid(), name);
+    await mpConnect(code, name, H.L.url); showLobby(code);
+  } catch(e){ fmsg('Could not connect. Check your internet and try again.', true); }
+  $('#bCreate').disabled = false;
+};
+$('#bJoin').onclick = async () => { audio(); const name = getName(); if (!name) return; const code = $('#inCode').value.trim().toUpperCase();
+  if (code.length !== 5){ fmsg('The room code has 5 letters', true); return; }
+  $('#bJoin').disabled = true; fmsg('Looking for room ' + code + '… 🔎');
+  try { await mpConnect(code, name); showLobby(code); fmsg(''); } catch(e){ MP.on = false; fmsg(e.message.includes('not found') ? 'Room not found. Check the code with your friend.' : 'Could not connect. Check your internet.', true); }
+  $('#bJoin').disabled = false;
+};
+function showLobby(code){ screens('mLobby'); $('#lCode').textContent = code; lmsg('Connecting…');
+  $('#lBots').style.display = MP.H ? '' : 'none'; $('#bGo').style.display = MP.H ? '' : 'none'; history.replaceState(null, '', location.pathname + '?room=' + code); }
+$('#bShare').onclick = async () => { const url = location.origin + location.pathname + '?room=' + MP.P.code, text = `Come play Poisoned Pints with me! 🍺☠️ Room code: ${MP.P.code}`;
+  try { if (navigator.share){ await navigator.share({title:'Poisoned Pints', text, url}); return; } } catch(e){ return; }
+  try { await navigator.clipboard.writeText(text + ' ' + url); lmsg('Link copied! Paste it to your friends 📋'); } catch(e){ lmsg('Send them this code: ' + MP.P.code); } };
+$('#botM').onclick = () => MP.H && MP.H.setBots(MP.H.bots - 1);
+$('#botP').onclick = () => MP.H && MP.H.setBots(MP.H.bots + 1);
+$('#bGo').onclick = () => { if (!MP.H) return; if (MP.H.players.length + MP.H.bots < 2){ lmsg('You need at least 2 taverns. Add a bot or wait for a friend.', true); return; } audio(); MP.H.start(); };
+$('#bLeave').onclick = () => { if (MP.H) MP.H.close(); if (MP.P) MP.P.leave(); MP.on = false; MP.H = null; MP.P = null; history.replaceState(null, '', location.pathname); screens('mMain'); };
+
+function mpStatus(d){
+  MP.status = d;
+  if (!MP.inGame){
+    const isHost = !!MP.H;
+    $('#lPlayers').innerHTML = d.players.map((p,i) => `<div class="pl"><span class="dotc" style="background:${['#ffc23d','#ff4d6d','#4cc9f0','#b15cff','#3ee08f'][i]}"></span><span class="nm">${esc(p.name)}${p.pid === MP.P.pid ? ' (you)' : ''}${i === 0 ? ' 👑' : ''}</span>${p.online ? '' : '📵'}${isHost && p.pid !== MP.P.pid ? `<button class="x" data-kick="${p.pid}">✕</button>` : ''}</div>`).join('')
+      + Array.from({length:d.bots}, (_,i) => `<div class="pl" style="opacity:.7"><span>🤖</span><span class="nm">Bot tavern</span></div>`).join('');
+    document.querySelectorAll('[data-kick]').forEach(b => b.onclick = () => MP.H.kick(b.dataset.kick));
+    $('#botN').textContent = `🤖 ${d.bots} bot${d.bots === 1 ? '' : 's'}`;
+    if (d.phase === 'lobby') lmsg(isHost ? (d.players.length < 2 ? 'Send the code to your friends. Start when everyone is in!' : `${d.players.length} players ready. Tap START when everyone is in!`) : 'You\'re in! Waiting for the host to start… 🍺');
+    return;
+  }
+  // in game: who are we waiting for?
+  if (MP.stage === 'waitNight' || MP.stage === 'waitMorning'){
+    const left = d.players.filter(p => !p.ready);
+    $('#waitP').innerHTML = d.players.map(p => `<span class="${p.ready ? 'ok' : ''}">${p.ready ? '✅' : p.online ? '⏳' : '📵'} ${esc(p.name)}</span>`).join('');
+    $('#waitS').textContent = left.length ? `Waiting for ${left.map(p => p.name).join(', ')}` : 'Everyone\'s done!';
+  }
+}
+function showWait(title){ $('#wait').classList.add('on'); $('#waitT').textContent = title; if (MP.status) mpStatus(MP.status); }
+function hideWait(){ $('#wait').classList.remove('on'); }
+function enterGame(state, seat){
+  S = state; ME = seat; MP.inGame = true; document.body.classList.add('mp');
+  $('#menu').style.display = 'none'; NET.store.set('pp_mp', {...(NET.store.get('pp_mp')||{}), code:MP.P.code, pid:MP.P.pid, name:MP.P.name, t:Date.now()});
+}
+function mpDay(d){
+  if (MP.got.day1) return; MP.got.day1 = true;
+  enterGame(d.state, d.seat); MP.daySec = d.sec;
+  MP.stage = 'day'; MP.log = [];
+  syncStaff(true); phase = 'day'; hud();
+  banner('DAY 1', '#ffc23d', `Welcome, ${MP.P.name}! ${S.taverns.length - 1} rival taverns tonight`, 1.8); dayCoach(); mpDayClock();
+}
+function mpDayClock(){
+  MP.stage = 'day'; MP.log = []; MP.forced = false; hideWait();
+  MP.clock = MP.daySec || NET.DAY_SEC(S.day); clearInterval(MP.clockT);
+  const show = () => { const m = Math.floor(MP.clock/60), s = MP.clock % 60; $('#hTime').textContent = `⏳ ${m}:${String(s).padStart(2,'0')}`; $('#hTime').style.color = MP.clock <= 20 ? '#ff8fa8' : ''; };
+  show();
+  MP.clockT = setInterval(() => { if (MP.stage !== 'day'){ clearInterval(MP.clockT); return; } MP.clock--; show();
+    if (MP.clock === 20) coach('⏳ <b>20 seconds left!</b> Finish your plans, then tap <b>OPEN UP</b>.');
+    if (MP.clock <= 0){ clearInterval(MP.clockT); closeSheet(); closeBubbles(); MP.forced = true; mpReady(); } }, 1000);
+}
+function mpReady(){
+  if (MP.stage !== 'day') return;
+  const stations = {}; me().staff.forEach(s => stations[s.id] = s.station);
+  MP.pending = {t:'ready', d:{round:S.day, log:MP.log.slice(), stations}};
+  MP.P.send('ready', MP.pending.d); MP.stage = 'waitNight'; clearInterval(MP.clockT);
+  closeBubbles(); hideHand(); coach(''); $('#hTime').textContent = '✅ Ready';
+  showWait('Your plans are in!');
+}
+function mpNight(d){
+  if (MP.got['n' + d.round] || !S || d.round !== S.day) return; MP.got['n' + d.round] = true;
+  MP.stage = 'night'; hideWait(); closeSheet(); MP.pending = null; $('#hTime').textContent = '🌙';
+  startNight(d.roll);
+}
+function mpNightDone(n){
+  const vs = n.vsMe, res = {round:S.day, served:n.served, income:n.income, missed:n.missed, escaped:n.escaped,
+    caught:vs.filter(e => e.caught).map(e => e.id), fizzled:vs.filter(e => e.fizzledLive).map(e => e.id),
+    lucky:n.mine.filter(e => e.lucky).map(e => e.id), clues:n.clues,
+    working:me().staff.filter(s => s.station === 'bar' || s.station === 'door').map(s => s.id)};
+  MP.pending = {t:'nres', d:res}; MP.P.send('nres', res); MP.stage = 'waitMorning';
+  kegMat.emissive.setRGB(0,0,0); if (N && N.kegEmpty) refillKeg();
+  showWait('Closing up for the night…');
+  if (MP.early){ const e = MP.early; MP.early = null; mpMorning(e); }
+}
+function mpMorning(d){
+  if (MP.got['m' + d.night]) return;
+  if (MP.stage === 'night'){ MP.early = d; if (phase === 'night') endNight(); return; }   // host moved on: wrap up our night first
+  MP.got['m' + d.night] = true; MP.pending = null; hideWait();
+  S = d.state; MP.daySec = d.sec; MP.stage = d.over ? 'over' : 'morning';
+  syncStaff(); hud();
+  morning({perTavern:{[ME]:d.rep}, news:d.news}, d.n);
+}
+function mpSync(d){
+  if (d.phase === 'lobby'){ if (!MP.inGame){ screens('mLobby'); $('#lCode').textContent = MP.P.code; } return; }
+  if (!MP.inGame){
+    if (d.seat === null || d.seat === undefined || !d.state) return;
+    // rejoining after a reload: pick up wherever the game is
+    MP.got.day1 = true; enterGame(d.state, d.seat); syncStaff(true); hud();
+    const last = d.last;
+    if (d.phase === 'over' && last && last.t === 'morning') return mpMorning(last.d);
+    if (d.phase === 'day'){
+      if (d.hasReady){ phase = 'day'; MP.stage = 'waitNight'; showWait('Your plans are in!'); return; }
+      if (last && last.t === 'morning' && last.d.round === S.day) return mpMorning(last.d);
+      phase = 'day'; MP.daySec = NET.DAY_SEC(S.day); startDay(); return;
+    }
+    if (d.phase === 'night'){ phase = 'day'; MP.stage = 'waitMorning'; if (!d.hasNres) MP.P.send('nres', {round:d.round, skip:true}); showWait('You missed tonight. Waiting for morning…'); return; }
+    return;
+  }
+  // just a reconnect: re-send anything the host is missing, and catch up on what we missed
+  if (MP.pending && MP.pending.t === 'ready' && d.phase === 'day' && !d.hasReady) MP.P.send('ready', MP.pending.d);
+  if (MP.pending && MP.pending.t === 'nres' && d.phase === 'night' && !d.hasNres) MP.P.send('nres', MP.pending.d);
+  if (d.last){ const L = d.last; if (L.t === 'night') mpNight(L.d); else if (L.t === 'morning') mpMorning(L.d); }
+}
+
+// arriving from a link or the home page
+(function(){
+  const q = new URLSearchParams(location.search), saved = NET.store.get('pp_mp');
+  if (q.has('room')){ screens('mFriends'); $('#inCode').value = q.get('room').toUpperCase().slice(0,5); fmsg($('#inName').value ? 'Tap JOIN ROOM 👇' : 'Type your name, then tap JOIN ROOM 👇'); }
+  else if (q.has('mp')) screens('mFriends');
+  if (saved && Date.now() - saved.t < 3*3600e3){
+    const hs = NET.store.get('pp_host_' + saved.code), b = $('#bRejoin');
+    b.classList.remove('hidden'); b.innerHTML = `↩️ REJOIN ROOM ${esc(saved.code)}<small>${hs ? 'you are the host' : 'go back into your game'}</small>`;
+    b.onclick = async () => { audio(); b.disabled = true; b.innerHTML = '↩️ Rejoining…';
+      try { sessionStorage.setItem('pp_pid', saved.pid); } catch(e){}
+      try {
+        if (hs && hs.phase !== 'over'){ const H = NET.Host(); MP.H = H; await H.resume(hs); await mpConnect(saved.code, saved.name, H.L.url); }
+        else await mpConnect(saved.code, saved.name, saved.url);
+        if (!MP.inGame) showLobby(saved.code);
+      } catch(e){ b.innerHTML = '↩️ Could not rejoin. Tap to try again'; b.disabled = false; }
+    };
+    if (q.get('room') === saved.code) screens('mMain');
+  }
+})();
+
 
 // =====================================================================
 // LOOP
 // =====================================================================
-let last = performance.now();
+let last = performance.now(); const SPEED = Math.min(8, +new URLSearchParams(location.search).get('speed') || 1);
 function frame(now){
   requestAnimationFrame(frame);
-  const dt = Math.min(0.05, (now - last)/1000); last = now;
+  const dt = Math.min(0.05, (now - last)/1000) * SPEED; last = now;
   updWalkers(dt);
   if (phase === 'night' && N) updNight(dt);
   const all = [...staffCh.values(), ...guests, ...intruders, owner];
@@ -990,7 +1278,7 @@ function frame(now){
 }
 resize(); requestAnimationFrame(frame);
 window.__pp = {get S(){return S;}, get N(){return N;}, get phase(){return phase;}, staffCh, guests, intruders, clueItems, toScreen, newGame, startNight, endNight,
-  serve, catchIntruder, collectClue, ST, syncStaff, missionPicker};
+  serve, catchIntruder, collectClue, ST, syncStaff, missionPicker, get ME(){return ME;}, MP};
 })();
 </script>
 </body>
