@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Poisoned Pints</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#ffc23d;--poison:#7cff4f;--pink:#ff4d8d;--sky:#4cc9f0;--ink:#1a0f2e;--glass:rgba(24,13,44,.86);--line:rgba(255,255,255,.13)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#24123f;touch-action:none;user-select:none;-webkit-user-select:none;
+  font-family:'Nunito',system-ui,sans-serif;color:#fff;overscroll-behavior:none}
+#c{position:fixed;inset:0;display:block;width:100%;height:100%}
+.layer{position:fixed;inset:0;pointer-events:none}
+.hidden{display:none!important}
+.f{font-family:'Lilita One',Impact,sans-serif;font-weight:400;letter-spacing:.02em}
+button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none;pointer-events:auto}
+
+/* ---------- menus ---------- */
+.menu{pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;
+  background:radial-gradient(ellipse at 50% 40%,rgba(36,18,63,.1),rgba(20,8,38,.8) 75%)}
+.title{font-family:'Lilita One';font-size:clamp(54px,15vw,104px);line-height:.88;text-align:center;color:var(--poison);
+  -webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink),0 10px 30px rgba(124,255,79,.45);
+  transform:rotate(-3deg);animation:wob 3.2s ease-in-out infinite}
+.title span{display:block;color:var(--gold);text-shadow:0 6px 0 var(--ink),0 10px 30px rgba(255,194,61,.45)}
+@keyframes wob{50%{transform:rotate(2deg) scale(1.03)}}
+.sub{font-weight:900;font-size:18px;text-shadow:0 2px 0 var(--ink);margin-bottom:8px;text-align:center}
+.btn{font-family:'Lilita One';font-size:22px;color:var(--ink);min-width:220px;padding:13px 26px;border-radius:18px;
+  background:linear-gradient(180deg,#fff27a,var(--gold));box-shadow:0 6px 0 #b4741a,0 12px 24px rgba(0,0,0,.35);transition:transform .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #b4741a}
+.btn.green{background:linear-gradient(180deg,#c9ff9e,var(--poison));box-shadow:0 6px 0 #3f9b22,0 12px 24px rgba(0,0,0,.35)}
+.btn.pink{background:linear-gradient(180deg,#ffb3c9,var(--pink));box-shadow:0 6px 0 #9b1f50,0 12px 24px rgba(0,0,0,.35)}
+.btn.ghost{background:rgba(255,255,255,.14);color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.35);font-size:19px}
+.btn.sm{min-width:0;font-size:17px;padding:10px 16px;border-radius:14px}
+.btn:disabled{opacity:.45;pointer-events:none}
+.card{pointer-events:auto;background:var(--glass);border:3px solid var(--line);border-radius:24px;padding:20px;width:min(440px,94vw);
+  max-height:88vh;max-height:88dvh;overflow:auto;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.card h2{font-family:'Lilita One';font-weight:400;font-size:28px;margin:0 0 10px;color:var(--gold);text-shadow:0 3px 0 var(--ink)}
+.lbl{font-weight:900;font-size:13px;opacity:.7;margin:14px 0 8px;text-transform:uppercase;letter-spacing:.08em}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+.seg button{font-family:'Lilita One';font-size:20px;border-radius:14px;padding:10px 0;background:rgba(255,255,255,.1);box-shadow:0 4px 0 rgba(0,0,0,.35)}
+.seg button.on{background:var(--pink);box-shadow:0 4px 0 #9b1f50}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.how{font-weight:800;font-size:15px;line-height:1.4}
+.how div{display:flex;gap:12px;align-items:flex-start;margin:9px 0}
+.how b{color:var(--gold)} .how .e{font-size:24px;line-height:1}
+.note{font-size:13px;opacity:.7;font-weight:800;text-align:center}
+
+/* ---------- shared HUD ---------- */
+#banner{position:fixed;top:28%;left:0;right:0;text-align:center;font-family:'Lilita One';font-size:clamp(30px,9vw,56px);z-index:30;pointer-events:none;
+  -webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 5px 0 var(--ink);opacity:0;transform:scale(.4);transition:all .25s cubic-bezier(.2,1.6,.4,1);padding:0 12px}
+#banner.show{opacity:1;transform:scale(1)}
+#banner small{display:block;font-family:'Nunito';font-weight:900;font-size:17px;-webkit-text-stroke:0;text-shadow:0 2px 0 var(--ink);margin-top:6px}
+.topbar{position:absolute;left:0;right:0;top:0;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;display:flex;align-items:center;gap:8px;
+  background:linear-gradient(180deg,rgba(20,8,38,.85),rgba(20,8,38,0));pointer-events:none}
+.ibtn{width:42px;height:42px;border-radius:13px;background:rgba(26,15,46,.75);font-size:19px;flex:none;border:2px solid var(--line)}
+.daytitle{font-family:'Lilita One';font-size:22px;text-shadow:0 2px 0 var(--ink);line-height:1}
+.daytitle small{display:block;font-family:'Nunito';font-weight:900;font-size:11px;opacity:.75;letter-spacing:.1em}
+.pill{background:rgba(26,15,46,.78);border:2px solid var(--line);border-radius:99px;padding:5px 11px;font-weight:900;font-size:15px;white-space:nowrap}
+.sp{flex:1}
+
+/* tabs */
+#tabs{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,1fr) 1.25fr;gap:4px;
+  padding:6px 6px calc(6px + env(safe-area-inset-bottom));background:rgba(20,8,38,.92);border-top:2px solid var(--line);pointer-events:auto;z-index:6}
+#tabs button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0 4px;border-radius:12px;font-weight:900;font-size:11px;position:relative;color:#d9cff0}
+#tabs button .i{font-size:23px;line-height:1.1}
+#tabs button.on{background:rgba(255,255,255,.12);color:#fff}
+#tabs button .dot{position:absolute;top:3px;right:12%;width:10px;height:10px;border-radius:50%;background:var(--pink);border:2px solid var(--ink)}
+#tabs #nightBtn{background:linear-gradient(180deg,#b9a6ff,#7b5cff);color:#fff;font-family:'Lilita One';font-size:14px;box-shadow:0 4px 0 #42288f}
+#tabs #nightBtn .i{font-size:22px}
+
+/* panel */
+#panel{position:absolute;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));height:52vh;height:52dvh;background:var(--glass);
+  border-top:3px solid var(--line);border-radius:22px 22px 0 0;pointer-events:auto;display:flex;flex-direction:column;z-index:5;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:transform .25s cubic-bezier(.2,1,.3,1)}
+#panel.closed{transform:translateY(120%)}
+#panelHead{display:flex;align-items:center;padding:12px 14px 6px;gap:8px}
+#panelHead h3{margin:0;font-family:'Lilita One';font-weight:400;font-size:22px;color:var(--gold);flex:1;text-shadow:0 2px 0 var(--ink)}
+#panelBody{overflow-y:auto;padding:4px 12px 16px;flex:1;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+@media (orientation:landscape) and (min-width:700px){
+  #panel{left:auto;right:10px;top:70px;bottom:calc(74px + env(safe-area-inset-bottom));width:410px;height:auto;border-radius:22px;border:3px solid var(--line)}
+  #panel.closed{transform:translateX(120%)}
+  #tabs{left:50%;right:auto;transform:translateX(-50%);width:min(620px,96vw);border-radius:20px 20px 0 0;border:2px solid var(--line)}
+}
+.sec{font-weight:900;font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.65;margin:14px 2px 7px}
+.item{display:flex;gap:11px;align-items:center;padding:10px;border-radius:15px;background:rgba(255,255,255,.07);margin-bottom:7px;border:2px solid transparent}
+.item .ic{font-size:30px;width:40px;text-align:center;flex:none}
+.item .tx{flex:1;min-width:0}
+.item .tx b{font-size:16px;display:block}
+.item .tx small{display:block;font-size:13px;opacity:.78;font-weight:700;line-height:1.3}
+.item .tx i{display:block;font-size:13px;color:#ffd98a;font-weight:800;font-style:italic}
+.item.sel{border-color:var(--gold);background:rgba(255,194,61,.14)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-weight:900;font-size:12px;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.12);margin-top:4px}
+.chip.bad{background:rgba(255,77,109,.25)} .chip.good{background:rgba(124,255,79,.2)} .chip.gold{background:rgba(255,194,61,.25)}
+.dotc{width:14px;height:14px;border-radius:50%;display:inline-block;border:2px solid rgba(0,0,0,.4);flex:none}
+.mini{font-family:'Lilita One';font-size:15px;padding:8px 13px;border-radius:12px;background:var(--gold);color:var(--ink);box-shadow:0 3px 0 #b4741a;flex:none}
+.mini.ghost{background:rgba(255,255,255,.14);color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.mini.pink{background:var(--pink);color:#fff;box-shadow:0 3px 0 #9b1f50}
+.mini:disabled{opacity:.4}
+.clue{font-size:14px;font-weight:800;padding:7px 10px;border-radius:10px;background:rgba(0,0,0,.25);margin-top:5px;border-left:3px solid #b9a6ff}
+.clue.sure{border-left-color:var(--poison)}
+.big{font-family:'Lilita One';font-size:44px;text-align:center;color:var(--gold);text-shadow:0 3px 0 var(--ink)}
+.pricebtns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pricebtns button{padding:10px 4px;border-radius:13px;background:rgba(255,255,255,.1);font-weight:900;font-size:14px;line-height:1.2}
+.pricebtns button.on{background:var(--pink)}
+.empty{opacity:.65;font-weight:800;font-size:14px;padding:8px 4px}
+
+/* advisor */
+#advisor{position:absolute;left:8px;right:8px;bottom:calc(74px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:flex-start;
+  pointer-events:auto;z-index:7;max-width:520px;transition:opacity .2s}
+#advisor.top{bottom:auto;top:calc(60px + env(safe-area-inset-top))}
+#advisor .av{font-size:34px;line-height:1;filter:drop-shadow(0 3px 0 var(--ink));flex:none}
+#advisor .bub{background:#fff7e3;color:var(--ink);border-radius:16px;padding:9px 12px;font-weight:800;font-size:14px;line-height:1.35;
+  box-shadow:0 4px 0 rgba(0,0,0,.3);position:relative;flex:1}
+#advisor .bub b{color:#b4462a}
+#advisor .nx{display:inline-block;margin-left:6px;font-weight:900;color:#7b5cff;cursor:pointer}
+#advisor .x{position:absolute;top:-8px;right:-6px;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;font-weight:900}
+.glow{animation:glow 1s ease-in-out infinite!important;position:relative;z-index:8}
+@keyframes glow{0%,100%{box-shadow:0 0 0 3px var(--gold),0 0 18px 4px rgba(255,194,61,.8)}50%{box-shadow:0 0 0 5px #fff,0 0 30px 10px rgba(255,194,61,.9)}}
+
+/* night */
+#caption{position:absolute;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(560px,94vw);text-align:center;
+  background:rgba(14,6,30,.85);border:2px solid var(--line);border-radius:16px;padding:12px 16px;font-weight:900;font-size:16px;line-height:1.35}
+#skipBtn{position:absolute;right:10px;top:calc(10px + env(safe-area-inset-top));pointer-events:auto;font-family:'Lilita One';font-size:16px;
+  padding:9px 14px;border-radius:13px;background:rgba(26,15,46,.8);border:2px solid var(--line)}
+#nightTitle{position:absolute;left:12px;top:calc(12px + env(safe-area-inset-top));font-family:'Lilita One';font-size:24px;text-shadow:0 3px 0 var(--ink);color:#b9a6ff}
+
+/* minigames */
+.mgtop{position:absolute;top:calc(10px + env(safe-area-inset-top));left:0;right:0;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:0 60px}
+.meter{width:150px;height:16px;border-radius:9px;background:rgba(0,0,0,.55);border:2px solid #fff;overflow:hidden;align-self:center}
+.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffe66b,#ff4d4d)}
+.mghint{position:absolute;left:50%;transform:translateX(-50%);top:calc(60px + env(safe-area-inset-top));font-weight:900;font-size:14px;
+  background:rgba(14,6,30,.75);padding:6px 12px;border-radius:12px;text-align:center;width:max-content;max-width:92vw}
+#joyZone{position:absolute;left:0;bottom:0;width:55%;height:55%;pointer-events:auto}
+#joy{position:absolute;width:126px;height:126px;margin:-63px 0 0 -63px;border-radius:50%;background:rgba(255,255,255,.12);border:3px solid rgba(255,255,255,.3);
+  left:100px;top:calc(100% - 115px - env(safe-area-inset-bottom));opacity:.6}
+#joy.on{opacity:1}
+#knob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px;border-radius:50%;background:linear-gradient(180deg,#fff,#d8cdf5);box-shadow:0 4px 0 rgba(0,0,0,.3)}
+.rbtn{position:absolute;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Lilita One';color:var(--ink);transition:transform .08s,filter .2s}
+.rbtn:active{transform:translateY(4px)}
+#sAct{right:calc(22px + env(safe-area-inset-right));bottom:calc(30px + env(safe-area-inset-bottom));width:112px;height:112px;font-size:16px;
+  background:linear-gradient(180deg,#d6ffb0,var(--poison));box-shadow:0 7px 0 #3f9b22,0 0 36px rgba(124,255,79,.55)}
+#sAct .ic{font-size:38px;line-height:1}
+#sAct.off{filter:grayscale(1) brightness(.7)}
+#sDash{right:calc(146px + env(safe-area-inset-right));bottom:calc(26px + env(safe-area-inset-bottom));width:72px;height:72px;font-size:13px;
+  background:linear-gradient(180deg,#a8ecff,var(--sky));box-shadow:0 6px 0 #1f7a99}
+#sDash .ic{font-size:24px;line-height:1}
+#sDash.cd{filter:grayscale(1) brightness(.7)}
+.qte{position:absolute;left:50%;bottom:calc(40px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(420px,92vw);display:flex;flex-direction:column;align-items:center;gap:14px}
+.bar{position:relative;width:100%;height:34px;border-radius:17px;background:rgba(0,0,0,.6);border:3px solid #fff;overflow:hidden}
+.bar .zone{position:absolute;top:0;bottom:0;background:linear-gradient(180deg,#c9ff9e,var(--poison))}
+.bar .needle{position:absolute;top:-3px;bottom:-3px;width:6px;margin-left:-3px;background:#fff;box-shadow:0 0 10px #fff}
+.qbtn{font-family:'Lilita One';font-size:30px;color:var(--ink);width:100%;padding:18px;border-radius:20px;background:linear-gradient(180deg,#ffb3c9,var(--pink));box-shadow:0 7px 0 #9b1f50}
+.qbtn:active{transform:translateY(4px)}
+.lives{font-size:24px;letter-spacing:4px;text-shadow:0 2px 0 var(--ink)}
+#pickArena{position:absolute;left:50%;top:44%;width:220px;height:220px;margin:-110px 0 0 -110px}
+#pickTarget{position:absolute;inset:0;margin:auto;width:84px;height:84px;border-radius:50%;border:5px dashed var(--gold);display:flex;align-items:center;justify-content:center;font-size:40px;background:rgba(0,0,0,.35)}
+#pickRing{position:absolute;left:50%;top:50%;width:220px;height:220px;margin:-110px;border-radius:50%;border:6px solid #fff;box-shadow:0 0 18px #fff}
+
+/* report */
+.rline{padding:9px 11px;border-radius:11px;background:rgba(255,255,255,.07);margin-bottom:6px;font-size:14px;font-weight:800;line-height:1.35;border-left:4px solid #888}
+.rline.good{border-left-color:var(--poison)} .rline.bad{border-left-color:var(--pink)} .rline.intel{border-left-color:#b9a6ff} .rline.news{border-left-color:var(--sky)}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.trio div{background:rgba(255,255,255,.08);border-radius:12px;padding:8px;text-align:center;font-weight:800;font-size:12px}
+.trio b{display:block;font-family:'Lilita One';font-weight:400;font-size:24px}
+.rank{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.07);margin-bottom:7px;font-weight:900}
+.rank.me{background:rgba(255,194,61,.2);outline:2px solid var(--gold)}
+.rank .n{font-family:'Lilita One';font-size:22px;width:24px;text-align:center}
+.rank .s{margin-left:auto;font-family:'Lilita One';font-size:20px;color:var(--gold);font-weight:400;text-align:right}
+.rank .s small{display:block;font-family:Nunito;font-size:11px;color:#fff;opacity:.7}
+#err{pointer-events:auto;align-items:center;justify-content:center;text-align:center;padding:30px;font-weight:800}
+#modalLayer{z-index:20}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<!-- MAIN MENU -->
+<div class="layer menu" id="mMain">
+  <div class="title">Poisoned<span>Pints</span></div>
+  <div class="sub">Hire shady staff. Poison rivals. Bribe the Guard.<br>Find out who betrayed you. 🕵️</div>
+  <button class="btn green" id="bPlay">▶ PLAY</button>
+  <button class="btn ghost" id="bHow">How to play</button>
+  <div class="note">18+ · cartoon poisoning, brawls & betrayal</div>
+</div>
+
+<!-- SETUP -->
+<div class="layer menu hidden" id="mSetup">
+  <div class="card">
+    <h2>🍺 New Game</h2>
+    <div class="lbl">Rival taverns (bots)</div>
+    <div class="seg" id="sRivals"><button>1</button><button>2</button><button class="on">3</button><button>4</button></div>
+    <div class="lbl">Difficulty</div>
+    <div class="seg" id="sDiff"><button data-v="easy">Chill</button><button data-v="normal" class="on">Rowdy</button><button data-v="hard">Savage</button></div>
+    <div class="note" style="margin-top:12px">10 days & nights · about 20–30 minutes</div>
+    <div class="row"><button class="btn green" id="bGo">OPEN THE DOORS!</button></div>
+    <div class="row" style="margin-top:6px"><button class="btn ghost sm" data-back>Back</button></div>
+  </div>
+</div>
+
+<!-- HOW TO -->
+<div class="layer menu hidden" id="mHow">
+  <div class="card how">
+    <h2>📜 How to Play</h2>
+    <div><span class="e">🌞</span><span><b>Day: scheme.</b> Hire shady staff, upgrade your ale, send agents on secret missions and slip the Guard Captain a bribe.</span></div>
+    <div><span class="e">🌙</span><span><b>Night: chaos.</b> Your missions play out. <b>Play them yourself</b> (sneak past guards, win a brawl, pick a pocket) or let your agent try.</span></div>
+    <div><span class="e">🕶️</span><span><b>Everything is secret.</b> Rivals never see your crew, plans or bribes, and you never see theirs.</span></div>
+    <div><span class="e">🔍</span><span>Attacks are <b>anonymous</b>. Collect clues (colours, outfits, spy reports) and <b>accuse</b> the culprit. Right = they're fined. Wrong = you look foolish.</span></div>
+    <div><span class="e">🐀</span><span>Watch out for <b>traitors</b>. A recruit might secretly work for a rival. Read their notes, and send a Spy to check your own crew.</span></div>
+    <div><span class="e">🏆</span><span>After 10 nights, the highest <b>gold + reputation × 5</b> wins.</span></div>
+    <div class="row"><button class="btn" data-back>Got it!</button></div>
+  </div>
+</div>
+
+<!-- DAY -->
+<div class="layer hidden" id="lDay">
+  <div class="topbar">
+    <button class="ibtn" id="dMenu">⏸</button>
+    <div class="daytitle" id="dTitle">DAY 1<small>OF 10 · SCHEME</small></div>
+    <div class="sp"></div>
+    <div class="pill" id="dGold">💰 250</div>
+    <div class="pill" id="dRep">⭐ 50</div>
+    <button class="ibtn" id="dHelp">❓</button>
+  </div>
+  <div id="advisor" class="hidden"><div class="av">🧔‍♀️</div><div class="bub"><button class="x" id="advX">✕</button><span id="advT"></span></div></div>
+  <div id="panel" class="closed">
+    <div id="panelHead"><h3 id="panelTitle">Crew</h3><button class="ibtn" id="panelX">✕</button></div>
+    <div id="panelBody"></div>
+  </div>
+  <div id="tabs">
+    <button data-tab="crew"><span class="i">👥</span>CREW</button>
+    <button data-tab="missions"><span class="i">🗺️</span>MISSIONS</button>
+    <button data-tab="bribe"><span class="i">🪙</span>BRIBE</button>
+    <button data-tab="case"><span class="i">🔍</span>CASES</button>
+    <button data-tab="tavern"><span class="i">🍺</span>TAVERN</button>
+    <button id="nightBtn"><span class="i">🌙</span>NIGHT ▶</button>
+  </div>
+</div>
+
+<!-- NIGHT -->
+<div class="layer hidden" id="lNight">
+  <div id="nightTitle">NIGHT 1</div>
+  <button id="skipBtn">⏩ Fast</button>
+  <div id="caption"></div>
+</div>
+
+<!-- SNEAK GAME -->
+<div class="layer hidden" id="lSneak">
+  <div class="mgtop"><div class="pill" id="snTime">⏱ 45</div><div class="pill">👁️</div><div class="meter"><i id="snDet"></i></div></div>
+  <div class="mghint" id="snHint">Reach the glowing keg. Stay OUT of the guards' light!</div>
+  <div id="joyZone"><div id="joy"><div id="knob"></div></div></div>
+  <button id="sDash" class="rbtn"><span class="ic">💨</span>DASH</button>
+  <button id="sAct" class="rbtn off"><span class="ic">☠️</span><span id="sActL">POISON</span></button>
+</div>
+
+<!-- BRAWL GAME -->
+<div class="layer hidden" id="lBrawl">
+  <div class="mghint" style="top:calc(14px + env(safe-area-inset-top))">Tap <b>PUNCH</b> when the needle is in the <b style="color:var(--poison)">green</b>. 3 hits to win, 3 misses and you're out!</div>
+  <div class="qte">
+    <div class="lives" id="brLives"></div>
+    <div class="bar"><div class="zone" id="brZone"></div><div class="needle" id="brNeedle"></div></div>
+    <button class="qbtn" id="brBtn">👊 PUNCH!</button>
+  </div>
+</div>
+
+<!-- PICKPOCKET GAME -->
+<div class="layer hidden" id="lPick">
+  <div class="mghint" style="top:calc(14px + env(safe-area-inset-top))">Tap <b>GRAB</b> when the white ring touches the purse's <b style="color:var(--gold)">golden circle</b>. 2 fumbles and you're spotted!</div>
+  <div id="pickArena"><div id="pickTarget">👛</div><div id="pickRing"></div></div>
+  <div class="qte"><div class="lives" id="pkLives"></div><button class="qbtn" id="pkBtn" style="background:linear-gradient(180deg,#fff27a,var(--gold));box-shadow:0 7px 0 #b4741a">🤏 GRAB!</button></div>
+</div>
+
+<!-- MODALS -->
+<div class="layer menu hidden" id="modalLayer"><div class="card" id="modal"></div></div>
+
+<!-- END -->
+<div class="layer menu hidden" id="mEnd"><div class="card" id="endCard"></div></div>
+
+<div id="banner"></div>
+<div class="layer menu hidden" id="err"><div class="card">The 3D engine didn't load. Check your internet connection and reload the page.</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="engine.js"></script>
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => Array.from(document.querySelectorAll(s));
+if (!window.THREE || !window.PP){ $('#err').classList.remove('hidden'); $('#mMain').classList.add('hidden'); return; }
+const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const TAU = Math.PI*2, rand = (a,b) => a + Math.random()*(b-a), clamp = (v,a,b) => Math.max(a, Math.min(b, v)), lerp = (a,b,t) => a+(b-a)*t;
+const d2 = (a,b) => { const x=a.x-b.x, z=a.z-b.z; return x*x+z*z; };
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+// =====================================================================
+// 3D CORE
+// =====================================================================
+const renderer = new THREE.WebGLRenderer({canvas:$('#c'), antialias:true, powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 1.75));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(50, 1, 0.1, 260);
+let portrait = false;
+function resize(){ const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w/h; portrait = w < h;
+  camera.fov = portrait ? 60 : 44; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+
+const SKY_DAY = new THREE.Color(0x8a6cc9), SKY_NIGHT = new THREE.Color(0x120a28);
+scene.background = SKY_DAY.clone(); scene.fog = new THREE.Fog(0x8a6cc9, 55, 140);
+const hemi = new THREE.HemisphereLight(0xfff6ea, 0x5b4a86, 0.62); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff0dc, 0.85); sun.castShadow = true; sun.shadow.mapSize.set(1024,1024);
+Object.assign(sun.shadow.camera, {left:-30,right:30,top:30,bottom:-30,near:1,far:110}); sun.shadow.bias = -0.0006;
+scene.add(sun); scene.add(sun.target);
+const SUN_DAY = new THREE.Color(0xfff0dc), SUN_NIGHT = new THREE.Color(0x7d8cff);
+let dayF = 0, dayTarget = 0;   // 0 = day, 1 = night
+
+const grad = new THREE.DataTexture(new Uint8Array([120,120,120,255, 195,195,195,255, 255,255,255,255]), 3, 1, THREE.RGBAFormat);
+grad.minFilter = grad.magFilter = THREE.NearestFilter; grad.needsUpdate = true;
+const matCache = {};
+const mat = (c, emi) => { const k = c+'|'+(emi||0); return matCache[k] || (matCache[k] = new THREE.MeshToonMaterial({color:c, gradientMap:grad, emissive:emi||0})); };
+function mk(geo, c, cast=true, recv=false){ const m = new THREE.Mesh(geo, (c && c.isMaterial) ? c : mat(c)); m.castShadow = cast; m.receiveShadow = recv; return m; }
+const box = (w,h,d,c) => mk(new THREE.BoxGeometry(w,h,d), c);
+const cyl = (rt,rb,h,c,s=12) => mk(new THREE.CylinderGeometry(rt,rb,h,s), c);
+
+// sprites
+const texCache = {};
+function emojiTex(e, bg){
+  const k = e+'|'+bg; if (texCache[k]) return texCache[k];
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  if (bg){ g.fillStyle = bg; g.beginPath(); g.arc(64,60,54,0,TAU); g.fill(); g.lineWidth = 7; g.strokeStyle = '#1a0f2e'; g.stroke();
+    g.beginPath(); g.moveTo(52,110); g.lineTo(64,126); g.lineTo(76,110); g.fill(); }
+  g.font = '62px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(e, 64, 64);
+  return texCache[k] = new THREE.CanvasTexture(c);
+}
+function textTex(txt, color, w=256){
+  const k = 'T|'+txt+'|'+color+'|'+w; if (texCache[k]) return texCache[k];
+  const c = document.createElement('canvas'); c.width = w; c.height = 96; const g = c.getContext('2d');
+  g.font = '56px "Lilita One", Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineWidth = 12; g.strokeStyle = '#1a0f2e'; g.strokeText(txt, w/2, 50); g.fillStyle = color; g.fillText(txt, w/2, 50);
+  return texCache[k] = new THREE.CanvasTexture(c);
+}
+function sprite(tex, sx, sy){ const s = new THREE.Sprite(new THREE.SpriteMaterial({map:tex, transparent:true, depthWrite:false})); s.scale.set(sx, sy||sx, 1); s.renderOrder = 10; return s; }
+const floaters = [];
+function floatText(x, y, z, txt, color='#ffc23d'){
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map:textTex(txt,color,384), transparent:true, depthWrite:false, depthTest:false}));
+  s.scale.set(3.6, 0.9, 1); s.position.set(x, y, z); s.renderOrder = 20; scene.add(s); floaters.push({s, life:1.3, max:1.3});
+}
+
+// particles
+const pGeoS = new THREE.SphereGeometry(0.13,6,5), pGeoB = new THREE.BoxGeometry(0.22,0.22,0.22), pGeoC = new THREE.CylinderGeometry(0.16,0.16,0.05,10);
+const basic = {}; const bmat = c => basic[c] || (basic[c] = new THREE.MeshBasicMaterial({color:c, transparent:true}));
+const pool = []; for (let i=0;i<260;i++){ const m = new THREE.Mesh(pGeoS, bmat(0xffffff)); m.visible = false; scene.add(m); pool.push({m, life:0}); }
+function burst(x,y,z,color,n,o={}){
+  const {spd=4, up=5, life=0.8, size=1, geo=pGeoS, grav=14} = o;
+  for (let i=0;i<n;i++){ const p = pool.find(p => p.life <= 0); if (!p) return;
+    p.m.geometry = geo; p.m.material = bmat(color); p.m.visible = true; p.m.position.set(x,y,z);
+    const a = Math.random()*TAU, s = rand(0.3,1)*spd; p.vx = Math.cos(a)*s; p.vz = Math.sin(a)*s; p.vy = rand(0.4,1)*up; p.g = grav;
+    p.life = p.max = life*rand(0.7,1.2); p.size = size*rand(0.7,1.3); p.spin = rand(-8,8); }
+}
+function updateParticles(dt){
+  for (const p of pool){ if (p.life <= 0) continue; p.life -= dt; if (p.life <= 0){ p.m.visible = false; continue; }
+    p.vy -= p.g*dt; p.m.position.x += p.vx*dt; p.m.position.y += p.vy*dt; p.m.position.z += p.vz*dt;
+    if (p.m.position.y < 0.08){ p.m.position.y = 0.08; p.vy *= -0.4; p.vx *= 0.7; p.vz *= 0.7; }
+    p.m.rotation.x += p.spin*dt; p.m.rotation.y += p.spin*dt; p.m.scale.setScalar(p.size * Math.min(1, p.life/p.max*2)); }
+  for (let i=floaters.length-1;i>=0;i--){ const f = floaters[i]; f.life -= dt; f.s.position.y += dt*2;
+    f.s.material.opacity = Math.min(1, f.life/f.max*2.5); if (f.life <= 0){ scene.remove(f.s); f.s.material.dispose(); floaters.splice(i,1); } }
+}
+
+// sound
+let actx = null, muted = false;
+function audioInit(){ if (!actx){ try { actx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} } if (actx && actx.state==='suspended') actx.resume(); }
+function tone(f, dur, type='square', vol=0.08, f2=null, delay=0){
+  if (!actx || muted) return; const t = actx.currentTime + delay, o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t+dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+dur+0.02);
+}
+const sfx = {
+  coin(){ tone(988,.07,'square',.05); tone(1319,.12,'square',.05,null,.07); },
+  click(){ tone(700,.05,'square',.03); },
+  hire(){ tone(523,.1,'square',.05); tone(784,.15,'square',.05,null,.1); },
+  poison(){ tone(330,.5,'sawtooth',.06,90); tone(220,.5,'sine',.05,70,.05); },
+  hit(){ tone(160,.18,'triangle',.25,50); },
+  miss(){ tone(200,.2,'square',.05,120); },
+  whistle(){ tone(2100,.12,'sine',.07); tone(2100,.2,'sine',.07,null,.16); },
+  busted(){ tone(400,.5,'sawtooth',.07,100); },
+  alarm(){ tone(880,.15,'square',.05); tone(660,.15,'square',.05,null,.18); tone(880,.15,'square',.05,null,.36); },
+  bell(){ tone(660,.6,'sine',.08); tone(990,.8,'sine',.05,null,.1); },
+  owl(){ tone(420,.35,'sine',.06,360); tone(380,.5,'sine',.06,300,.45); },
+  dash(){ tone(500,.12,'sine',.05,1200); },
+  win(){ [523,659,784,1047].forEach((f,i)=>tone(f,.25,'square',.05,null,i*.12)); },
+  rooster(){ tone(600,.15,'sawtooth',.05,900); tone(900,.4,'sawtooth',.05,500,.15); }
+};
+
+// characters
+const G_body = new THREE.CylinderGeometry(0.4,0.52,0.95,12), G_head = new THREE.SphereGeometry(0.42,16,12), G_eye = new THREE.SphereGeometry(0.07,8,6),
+      G_arm = new THREE.BoxGeometry(0.2,0.55,0.2), G_hand = new THREE.SphereGeometry(0.13,8,6), G_leg = new THREE.BoxGeometry(0.25,0.5,0.25), G_nose = new THREE.SphereGeometry(0.09,8,6);
+function makeChar(o){
+  const root = new THREE.Group(), rig = new THREE.Group(); root.add(rig);
+  const body = mk(G_body, o.body); body.position.y = 1.0; rig.add(body);
+  if (o.apron){ const a = box(0.62,0.6,0.08,0xf6efe1); a.position.set(0,0.92,0.44); rig.add(a); }
+  if (o.cape){ const c = box(0.9,1.1,0.08,o.cape); c.position.set(0,1.0,-0.48); rig.add(c); }
+  const head = mk(G_head, o.skin); head.position.y = 1.82; rig.add(head);
+  for (const s of [-1,1]){ const e = mk(G_eye, o.eyes||0x1a0f2e, false); e.position.set(0.15*s,1.88,0.37); rig.add(e); }
+  const nose = mk(G_nose, o.skin, false); nose.position.set(0,1.78,0.42); rig.add(nose);
+  if (o.beard){ const b = mk(new THREE.SphereGeometry(0.3,10,8), o.beard); b.scale.set(1,0.8,0.7); b.position.set(0,1.58,0.25); rig.add(b); }
+  const hc = o.hatColor || 0x222222, H = o.hat;
+  if (H==='crown'){ const c = cyl(0.3,0.34,0.26,0xffc23d,6); c.position.y=2.27; rig.add(c);
+    for (let i=0;i<6;i++){ const sp = mk(new THREE.ConeGeometry(0.07,0.18,4),0xffc23d); const a=i/6*TAU; sp.position.set(Math.cos(a)*0.3,2.47,Math.sin(a)*0.3); rig.add(sp); } }
+  if (H==='cap' || H==='feather'){ const c = cyl(0.38,0.42,0.3,hc); c.position.y=2.2; rig.add(c); const br = cyl(0.55,0.55,0.05,hc); br.position.y=2.07; rig.add(br);
+    if (H==='feather'){ const f = mk(new THREE.ConeGeometry(0.08,0.8,5),0xff4d8d); f.position.set(0.25,2.55,-0.1); f.rotation.z=-0.5; rig.add(f); } }
+  if (H==='tophat'){ const c = cyl(0.3,0.3,0.6,hc); c.position.y=2.45; rig.add(c); const br = cyl(0.5,0.5,0.05,hc); br.position.y=2.15; rig.add(br);
+    const band = cyl(0.31,0.31,0.1,0xb15cff); band.position.y=2.25; rig.add(band); }
+  if (H==='witch'){ const c = mk(new THREE.ConeGeometry(0.42,0.95,10),hc); c.position.y=2.6; c.rotation.z=0.2; rig.add(c); const br = cyl(0.7,0.7,0.05,hc); br.position.y=2.15; rig.add(br); }
+  if (H==='helmet'){ const h = mk(new THREE.SphereGeometry(0.46,12,8,0,TAU,0,Math.PI/2),0xb8c0d8); h.position.y=1.95; rig.add(h);
+    const pl = box(0.1,0.35,0.5,0xff3b5c); pl.position.set(0,2.45,-0.05); rig.add(pl); }
+  if (H==='bandana'){ const b = cyl(0.43,0.43,0.16,hc); b.position.y=2.02; rig.add(b); const k = mk(new THREE.SphereGeometry(0.1,6,6),hc); k.position.set(0,2.0,-0.45); rig.add(k); }
+  if (H==='hood'){ const h = mk(new THREE.SphereGeometry(0.5,12,10,0,TAU,0,Math.PI*0.62),hc); h.position.y=1.84; h.rotation.x=-0.28; rig.add(h); }
+  if (H==='bun'){ const b = mk(new THREE.SphereGeometry(0.2,8,8),hc); b.position.set(0,2.25,-0.1); rig.add(b); const t = mk(new THREE.SphereGeometry(0.44,12,8,0,TAU,0,Math.PI/2.2),hc); t.position.y=1.86; rig.add(t); }
+  const limb = (s, leg) => { const p = new THREE.Group();
+    if (leg){ p.position.set(0.21*s,0.55,0); const l = mk(G_leg, o.legs||0x2b2238); l.position.y=-0.26; p.add(l); }
+    else { p.position.set(0.56*s,1.38,0); const a = mk(G_arm, o.body); a.position.y=-0.26; p.add(a); const h = mk(G_hand,o.skin); h.position.y=-0.58; p.add(h); }
+    rig.add(p); return p; };
+  const ch = {root, rig, armL:limb(-1), armR:limb(1), legL:limb(-1,true), legR:limb(1,true), head, walkT:Math.random()*6,
+    face:0, sit:false, spd:0, pos:{x:0,z:0}, vel:{x:0,z:0}, stun:0, dash:0, dashCd:0, punch:0};
+  if (o.prop==='vial'){ const v = new THREE.Group(); const b = mk(new THREE.SphereGeometry(0.17,10,8), mat(0x7cff4f,0x2f8a10)); v.add(b);
+    const n = cyl(0.06,0.07,0.16,0xbfe8ff); n.position.y=0.18; v.add(n); v.position.set(0,-0.62,0.12); ch.armR.add(v); }
+  if (o.prop==='lute'){ const l = mk(new THREE.SphereGeometry(0.3,10,8),0xb5651d); l.scale.set(1,1.2,0.4); l.position.set(-0.25,0.95,0.45); rig.add(l); }
+  if (o.prop==='spear'){ const sp = cyl(0.05,0.05,2.6,0x8b5a2b,6); sp.position.set(0.6,1.4,0.1); rig.add(sp);
+    const tip = mk(new THREE.ConeGeometry(0.12,0.35,6),0xd0d4e0); tip.position.set(0.6,2.85,0.1); rig.add(tip); }
+  root.scale.setScalar(o.scale||1);
+  ch.stars = sprite(emojiTex('💫'), 0.9); ch.stars.position.y = 3.0; ch.stars.visible = false; root.add(ch.stars);
+  return ch;
+}
+function animChar(ch, dt){
+  const spd = ch.spd; ch.walkT += dt * (2.5 + spd*1.6);
+  const sw = Math.min(1, spd/5.5) * 0.95, s = Math.sin(ch.walkT);
+  if (ch.sit){ ch.rig.position.y = -0.3; ch.legL.rotation.x = ch.legR.rotation.x = -1.45;
+    ch.armL.rotation.x = ch.armR.rotation.x = -0.6 + Math.sin(ch.walkT*0.8)*0.15; ch.rig.rotation.set(0,0,0); return; }
+  ch.rig.position.y = Math.abs(s)*0.12*sw + (spd < 0.1 ? Math.sin(ch.walkT*0.7)*0.03 : 0);
+  ch.legL.rotation.x = s*sw; ch.legR.rotation.x = -s*sw;
+  ch.armL.rotation.x = -s*sw; ch.armR.rotation.x = s*sw; ch.armL.rotation.z = ch.armR.rotation.z = 0;
+  if (ch.punch > 0){ ch.punch -= dt; ch.armR.rotation.x = -1.6; }
+  if (ch.cheer){ ch.armL.rotation.z = 2.4 + Math.sin(ch.walkT*6)*0.3; ch.armR.rotation.z = -2.4 - Math.sin(ch.walkT*6)*0.3; }
+  ch.rig.rotation.x = sw*0.18;
+  ch.stars.visible = ch.stun > 0;
+  if (ch.stun > 0){ ch.stars.material.rotation += dt*6; ch.rig.rotation.z = Math.sin(ch.walkT*3)*0.35; ch.armL.rotation.z = 1.2; ch.armR.rotation.z = -1.2; }
+  else ch.rig.rotation.z = 0;
+}
+
+const LOOK = {
+  poisoner:  {body:0x2f6b3a, hat:'hood', hatColor:0x1d4a26, skin:0xd7b48e, prop:'vial'},
+  pickpocket:{body:0x3a3550, hat:'bandana', hatColor:0x15121f, skin:0xe0ac69},
+  bruiser:   {body:0x8b3a2b, skin:0xc68642, scale:1.25, beard:0x3b2414},
+  spy:       {body:0x22252e, hat:'cap', hatColor:0x111111, skin:0xf2c09b, cape:0x111111},
+  bard:      {body:0xd35400, hat:'feather', hatColor:0x8e44ad, skin:0xf5c6a0, prop:'lute'},
+  taster:    {body:0xecf0f1, hat:'bun', hatColor:0x6d4c41, skin:0xffdbac, apron:true},
+  talker:    {body:0x5b2c6f, hat:'tophat', hatColor:0x1a1a1a, skin:0xf1c27d}
+};
+const OWNER_LOOK = [
+  {body:0xffc23d, skin:0xf5c6a0, hat:'crown', apron:true, scale:1.05},
+  {body:0xc0392b, skin:0xf2c09b, hat:'bandana', hatColor:0x8b1a1a, beard:0x5a3a22, apron:true},
+  {body:0x2e86de, skin:0x8bd16a, hat:'hood', hatColor:0x1f4f7a, apron:true},
+  {body:0x8e44ad, skin:0xf7d4b8, hat:'bun', hatColor:0x2d1b10, apron:true},
+  {body:0x16a085, skin:0xc98a62, hat:'feather', hatColor:0x0b5345, beard:0xdddddd, apron:true}
+];
+const HOODED = {body:0x4a4558, hat:'hood', hatColor:0x302b3c, skin:0x4a4458, eyes:0xfff27a, cape:0x302b3c};
+const CUST_BODY = [0xe74c3c,0x3498db,0x9b59b6,0x1abc9c,0xf39c12,0xd35400,0x27ae60,0xe84393,0x6c5ce7,0x00b894];
+const CUST_SKIN = [0xf5c6a0,0xe0ac69,0xc68642,0x8d5524,0xffdbac,0x9be37a];
+const CUST_HAT = [null,'cap','hood','bun','bandana',null,'cap'];
+const pickA = a => a[Math.floor(Math.random()*a.length)];
+
+// =====================================================================
+// WORLD
+// =====================================================================
+const TW = 11, TD = 9, RAD = 19;
+const SEATS = [{x:-3.75,z:1.2,f:1},{x:-1.25,z:1.2,f:-1},{x:1.25,z:1.2,f:1},{x:3.75,z:1.2,f:-1},{x:-3.85,z:-1.2,f:1},{x:-1.35,z:-1.2,f:-1}];
+const TABLES = [{x:-2.5,z:1.2},{x:2.5,z:1.2},{x:-2.6,z:-1.2}];
+const KEG = {x:3.6, z:-3.25}, KEG_STAND = {x:3.1, z:-2.0};
+const LOCAL_BOXES = [
+  {x0:-5.7,x1:5.7,z0:-4.75,z1:-4.25}, {x0:-5.7,x1:-5.2,z0:-4.75,z1:4.75}, {x0:5.2,x1:5.7,z0:-4.75,z1:4.75},
+  {x0:-5.7,x1:-1.55,z0:4.25,z1:4.75}, {x0:1.55,x1:5.7,z0:4.25,z1:4.75}, {x0:-4.9,x1:2.3,z0:-4.0,z1:-3.05},
+  ...TABLES.map(t => ({x0:t.x-0.62,x1:t.x+0.62,z0:t.z-0.62,z1:t.z+0.62}))
+];
+let world = null, W = null;
+
+function signTex(name, css){
+  const c = document.createElement('canvas'); c.width = 512; c.height = 128; const g = c.getContext('2d');
+  g.fillStyle = '#3b2412'; g.fillRect(0,0,512,128); g.fillStyle = css; g.fillRect(8,8,496,112);
+  g.font = '60px "Lilita One", Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineWidth = 10; g.strokeStyle = '#1a0f2e'; g.strokeText(name, 256, 66); g.fillStyle = '#fff'; g.fillText(name, 256, 66);
+  return new THREE.CanvasTexture(c);
+}
+const hex = css => parseInt(css.slice(1), 16);
+
+function buildTavern(i, n, info){
+  const a = Math.PI/2 + i/n*TAU, cx = Math.cos(a)*RAD, cz = Math.sin(a)*RAD, yaw = Math.atan2(-cx, -cz), col = hex(info.css);
+  const t = {i, cx, cz, yaw, cs:Math.cos(yaw), sn:Math.sin(yaw), color:col, css:info.css, seats:[], g:new THREE.Group()};
+  const g = t.g; g.position.set(cx,0,cz); g.rotation.y = yaw; world.add(g);
+  const floor = mk(new THREE.BoxGeometry(TW,0.25,TD), 0x8a5a33, false, true); floor.position.y = 0.12; g.add(floor);
+  for (let k=-4;k<=4;k++){ const pl = mk(new THREE.BoxGeometry(0.06,0.01,TD-0.2), 0x6b4225, false, true); pl.position.set(k*1.2,0.26,0); g.add(pl); }
+  const rug = mk(new THREE.BoxGeometry(5.5,0.02,3.2), col, false, true); rug.position.set(0.2,0.27,0.6); g.add(rug);
+  LOCAL_BOXES.slice(0,5).forEach(b => { const w = b.x1-b.x0, d = b.z1-b.z0;
+    const wall = mk(new THREE.BoxGeometry(w,1.5,d), 0xd9c3a0, true, true); wall.position.set((b.x0+b.x1)/2, 0.75, (b.z0+b.z1)/2); g.add(wall);
+    const tr = mk(new THREE.BoxGeometry(w+0.04,0.22,d+0.06), col); tr.position.set(wall.position.x,1.55,wall.position.z); g.add(tr); });
+  for (const [x,z] of [[-5.45,-4.5],[5.45,-4.5],[-5.45,4.5],[5.45,4.5],[-1.6,4.5],[1.6,4.5]]){ const p = box(0.5,2.3,0.5,0x5a3820); p.position.set(x,1.15,z); g.add(p); }
+  const beam = box(3.8,0.35,0.35,0x5a3820); beam.position.set(0,2.35,4.5); g.add(beam);
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(3.4,0.85), new THREE.MeshBasicMaterial({map:signTex(info.name, info.css), side:THREE.DoubleSide}));
+  sign.position.set(0,2.95,4.55); g.add(sign); const sign2 = sign.clone(); sign2.rotation.y = Math.PI; sign2.position.z = 4.5; g.add(sign2);
+  const lan = mk(new THREE.SphereGeometry(0.22,8,6), new THREE.MeshToonMaterial({color:0xffd27a, gradientMap:grad, emissive:0})); lan.position.set(-1.9,2.1,4.75); g.add(lan); t.lantern = lan;
+  const bar = box(7.2,1.1,0.95,0x7a4a26); bar.position.set(-1.3,0.65,-3.52); g.add(bar);
+  const top = box(7.4,0.12,1.1,0x4e2d16); top.position.set(-1.3,1.25,-3.52); g.add(top);
+  for (let k=0;k<7;k++){ const b = cyl(0.1,0.12,0.45,[0x2ecc71,0x8e44ad,0xe67e22,0x3498db][k%4],6); b.position.set(-4.6+k*1.05,1.75,-4.35); g.add(b); }
+  const keg = new THREE.Group(); keg.position.set(KEG.x,0,KEG.z); g.add(keg);
+  t.kegMat = new THREE.MeshToonMaterial({color:0x9c6634, gradientMap:grad, emissive:0});
+  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.7,1.4,14), t.kegMat); barrel.castShadow = true; barrel.rotation.z = Math.PI/2; barrel.position.y = 1.0; keg.add(barrel);
+  for (const x of [-0.45,0.45]){ const r = mk(new THREE.TorusGeometry(0.71,0.05,6,16),0x555566); r.rotation.y = Math.PI/2; r.position.set(x,1.0,0); keg.add(r); }
+  const stand = box(1.5,0.3,1.2,0x5a3820); stand.position.y = 0.3; keg.add(stand);
+  TABLES.forEach(tb => { const tp = cyl(0.75,0.75,0.12,0xa86b3a,14); tp.position.set(tb.x,1.05,tb.z); g.add(tp);
+    const leg = cyl(0.12,0.2,1.0,0x6e4320,8); leg.position.set(tb.x,0.55,tb.z); g.add(leg);
+    const cnd = mk(new THREE.CylinderGeometry(0.08,0.08,0.25,6), mat(0xfff3c4,0x332200)); cnd.position.set(tb.x,1.25,tb.z); g.add(cnd); });
+  SEATS.forEach((s,k) => { const st = new THREE.Group(); const sx = cyl(0.36,0.36,0.1,0x9c6634); sx.position.y=0.55; st.add(sx);
+    for (let q=0;q<3;q++){ const l = cyl(0.05,0.05,0.55,0x6e4320,6); const aa=q/3*TAU; l.position.set(Math.cos(aa)*0.22,0.27,Math.sin(aa)*0.22); st.add(l); }
+    st.position.set(s.x,0.25,s.z); g.add(st); t.seats.push({k, x:s.x, z:s.z, f:s.f, stool:st, cust:null}); });
+  const ring = new THREE.Mesh(new THREE.RingGeometry(6.6,7.3,48), new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0, side:THREE.DoubleSide, depthWrite:false}));
+  ring.rotation.x = -Math.PI/2; ring.position.y = 0.3; g.add(ring); t.ring = ring;
+  t.poisonViz = 0;
+  return t;
+}
+const toL = (t,p) => { const dx=p.x-t.cx, dz=p.z-t.cz; return {x:dx*t.cs - dz*t.sn, z:dx*t.sn + dz*t.cs}; };
+const toW = (t,l) => ({x:l.x*t.cs + l.z*t.sn + t.cx, z:-l.x*t.sn + l.z*t.cs + t.cz});
+function regionOf(p){ for (const t of W.taverns){ const l = toL(t,p); if (Math.abs(l.x)<5.25 && Math.abs(l.z)<4.6) return t.i; } return -1; }
+const faceLocal = (t, lx, lz) => Math.atan2(lx*t.cs + lz*t.sn, -lx*t.sn + lz*t.cs);
+
+function buildWorld(names){
+  if (world){ scene.remove(world); world.traverse(o => { if (o.geometry && !o.geometry.__shared) o.geometry.dispose(); }); }
+  world = new THREE.Group(); scene.add(world);
+  W = {taverns:[], owners:[], staff:new Map(), recruits:[], customers:[], movers:new Set(), extras:[], lamps:[]};
+  const n = names.length;
+  const grass = mk(new THREE.CircleGeometry(110,48), 0x3f7a4a, false, true); grass.rotation.x = -Math.PI/2; world.add(grass);
+  const plaza = mk(new THREE.CircleGeometry(RAD+7.5,64), 0x8f7fa6, false, true); plaza.rotation.x = -Math.PI/2; plaza.position.y = 0.02; world.add(plaza);
+  for (const [r0,r1,c] of [[4.6,5.4,0x7a6a92],[11,11.8,0x7a6a92],[RAD+6.8,RAD+7.5,0x6a5a80]]){
+    const r = mk(new THREE.RingGeometry(r0,r1,64), c, false, true); r.rotation.x = -Math.PI/2; r.position.y = 0.04; world.add(r); }
+  const cg = new THREE.CylinderGeometry(0.35,0.35,0.04,6);
+  for (let k=0;k<160;k++){ const a = Math.random()*TAU, r = rand(5.5, RAD+6); const s = mk(cg, Math.random()<.5?0x9d8db5:0x82729c, false, true);
+    s.position.set(Math.cos(a)*r, 0.05, Math.sin(a)*r); s.rotation.y = Math.random()*3; world.add(s); }
+  // Guard Captain's watchtower in the middle
+  const tower = new THREE.Group(); world.add(tower);
+  const base = cyl(1.4,1.7,3.2,0x6d6380,10); base.position.y = 1.6; tower.add(base);
+  const deck = cyl(2.0,2.0,0.3,0x5a3820,10); deck.position.y = 3.3; tower.add(deck);
+  const roof = mk(new THREE.ConeGeometry(2.2,1.6,10), 0x2e5c8a); roof.position.y = 5.6; tower.add(roof);
+  for (let k=0;k<4;k++){ const p = cyl(0.1,0.1,2,0x5a3820,6); const a = k/4*TAU+0.4; p.position.set(Math.cos(a)*1.7,4.3,Math.sin(a)*1.7); tower.add(p); }
+  const flag = mk(new THREE.BoxGeometry(0.9,0.5,0.04), 0xffc23d); flag.position.set(0.5,6.8,0); tower.add(flag);
+  const fp = cyl(0.04,0.04,1.4,0x333333,6); fp.position.set(0,6.7,0); tower.add(fp);
+  const beacon = mk(new THREE.SphereGeometry(0.35,10,8), new THREE.MeshToonMaterial({color:0xfff08a, gradientMap:grad, emissive:0})); beacon.position.y = 4.1; tower.add(beacon); W.beacon = beacon;
+  const captain = makeChar({body:0x2c3e50, skin:0xf1c27d, hat:'helmet', prop:'spear', scale:1.1, cape:0x8b1a1a}); captain.root.position.set(0,3.45,0.6); world.add(captain.root); W.captain = captain;
+  for (let k=0;k<n;k++){ const a = Math.PI/2 + (k+0.5)/n*TAU, x = Math.cos(a)*(RAD-1), z = Math.sin(a)*(RAD-1);
+    const post = cyl(0.12,0.16,3.6,0x2b2238,6); post.position.set(x,1.8,z); world.add(post);
+    const l = mk(new THREE.SphereGeometry(0.35,10,8), new THREE.MeshToonMaterial({color:0xffe08a, gradientMap:grad, emissive:0})); l.position.set(x,3.7,z); world.add(l); W.lamps.push(l); }
+  for (let k=0;k<28;k++){ const a = k/28*TAU + rand(-.1,.1), r = rand(RAD+9, RAD+16), x = Math.cos(a)*r, z = Math.sin(a)*r;
+    const tr = cyl(0.25,0.35,1.6,0x6e4320,6); tr.position.set(x,0.8,z); world.add(tr);
+    [0x2f8f5b,0x3aa76d,0x267a4c].forEach((c,q) => { const cn = mk(new THREE.ConeGeometry(1.6-q*0.35,1.6,8), c); cn.position.set(x,2.0+q*0.85,z); world.add(cn); }); }
+  for (let k=0;k<64;k++){ const a = k/64*TAU, r = RAD+8.2; const p = box(0.25,0.8,0.25,0x6e4320); p.position.set(Math.cos(a)*r,0.4,Math.sin(a)*r); world.add(p); }
+  names.forEach((info,i) => W.taverns.push(buildTavern(i, n, info)));
+  // owners (rivals stand at their bar; you're the crowned one)
+  W.taverns.forEach((t,i) => { const o = makeChar(OWNER_LOOK[i]); const p = toW(t,{x:-1.5,z:-2.3}); o.pos = p; o.face = faceLocal(t,0,1);
+    o.root.position.set(p.x,0,p.z); o.root.rotation.y = o.face; world.add(o.root); W.owners.push(o); });
+  // night watchman
+  W.guard = makeChar({body:0x34495e, skin:0xf1c27d, hat:'helmet', prop:'spear', scale:1.12}); W.guard.pos = {x:0, z:8}; W.guard.patrolA = 0; world.add(W.guard.root);
+  const cone = new THREE.Mesh(new THREE.CircleGeometry(7, 28, -Math.PI/3.2 + Math.PI/2, Math.PI/1.6),
+    new THREE.MeshBasicMaterial({color:0xfff08a, transparent:true, opacity:0.2, depthWrite:false}));
+  cone.rotation.x = -Math.PI/2; cone.position.y = 0.08; W.guard.root.add(cone); W.guard.cone = cone;
+  W.arrow = mk(new THREE.ConeGeometry(0.4,0.8,4), mat(0x7cff4f,0x2f8a10), false); W.arrow.rotation.x = Math.PI; W.arrow.visible = false; world.add(W.arrow);
+}
+
+// ---- collision + navigation (used by the sneak game and walkers) ----
+function pushOutBox(l, b, r){
+  const qx = clamp(l.x,b.x0,b.x1), qz = clamp(l.z,b.z0,b.z1); let dx = l.x-qx, dz = l.z-qz; const dd = dx*dx+dz*dz;
+  if (dd >= r*r) return false;
+  if (dd > 1e-8){ const d = Math.sqrt(dd); l.x = qx + dx/d*r; l.z = qz + dz/d*r; }
+  else { const o = [[l.x-b.x0,-1,0],[b.x1-l.x,1,0],[l.z-b.z0,0,-1],[b.z1-l.z,0,1]].sort((a,b)=>a[0]-b[0])[0]; l.x += o[1]*(o[0]+r); l.z += o[2]*(o[0]+r); }
+  return true;
+}
+function collide(p, r){
+  for (const t of W.taverns){ const l = toL(t,p); if (Math.abs(l.x) > 7 || Math.abs(l.z) > 6.5) continue; let hit = false;
+    for (const b of LOCAL_BOXES) hit = pushOutBox(l, b, r) || hit;
+    const kx = l.x-KEG.x, kz = l.z-KEG.z, kd = Math.hypot(kx,kz);
+    if (kd < 0.9+r && kd > 0){ l.x = KEG.x + kx/kd*(0.9+r); l.z = KEG.z + kz/kd*(0.9+r); hit = true; }
+    if (hit){ const w = toW(t,l); p.x = w.x; p.z = w.z; } }
+  const cd = Math.hypot(p.x,p.z); if (cd < 1.9+r && cd > 0){ p.x = p.x/cd*(1.9+r); p.z = p.z/cd*(1.9+r); }
+  const rr = Math.hypot(p.x,p.z), lim = RAD+7.6; if (rr > lim){ p.x *= lim/rr; p.z *= lim/rr; }
+}
+function localRoute(t, from, to){ const pts = [];
+  if (Math.abs(from.z) > 0.35) pts.push({x:clamp(from.x,-4.2,3.1), z:0});
+  pts.push({x:to.x, z:0}); pts.push(to); return pts.map(p => toW(t,p)); }
+function plazaRoute(a, b){ const pts = [], vx = b.x-a.x, vz = b.z-a.z, L2 = vx*vx+vz*vz || 1;
+  const u = clamp(-(a.x*vx + a.z*vz)/L2, 0, 1), cx = a.x+vx*u, cz = a.z+vz*u;
+  if (Math.hypot(cx,cz) < 3.6){ let nx = -vz, nz = vx; const nl = Math.hypot(nx,nz)||1; nx/=nl; nz/=nl; if (nx*cx+nz*cz < 0){ nx=-nx; nz=-nz; } pts.push({x:nx*4.6, z:nz*4.6}); }
+  pts.push(b); return pts; }
+function route(from, to){
+  const ra = regionOf(from), rb = regionOf(to);
+  if (ra === rb && ra >= 0){ const t = W.taverns[ra]; return localRoute(t, toL(t,from), toL(t,to)); }
+  let pts = [], cur = from;
+  if (ra >= 0){ const t = W.taverns[ra]; pts = pts.concat(localRoute(t, toL(t,from), {x:0,z:3.6})); const door = toW(t,{x:0,z:6.2}); pts.push(door); cur = door; }
+  if (rb >= 0){ const t = W.taverns[rb]; pts = pts.concat(plazaRoute(cur, toW(t,{x:0,z:6.2}))); pts.push(toW(t,{x:0,z:3.6})); pts = pts.concat(localRoute(t, {x:0,z:3.6}, toL(t,to))); }
+  else pts = pts.concat(plazaRoute(cur, to));
+  return pts;
+}
+
+// walkers (cinematic movement)
+let speedMul = 1;
+function addChar(ch, p, face){ ch.pos = {x:p.x, z:p.z}; ch.face = face||0; ch.root.position.set(p.x,0,p.z); ch.root.rotation.y = ch.face; world.add(ch.root); W.extras.push(ch); return ch; }
+function removeChar(ch){ world.remove(ch.root); W.extras = W.extras.filter(x => x !== ch); }
+function walk(ch, pts, speed=3.2){ return new Promise(res => { ch.sit = false; W.movers.add({ch, pts:pts.slice(), speed, res}); }); }
+function updateMovers(dt){
+  for (const m of W.movers){ const ch = m.ch, p = m.pts[0];
+    if (!p){ W.movers.delete(m); ch.spd = 0; m.res(); continue; }
+    const dx = p.x-ch.pos.x, dz = p.z-ch.pos.z, d = Math.hypot(dx,dz), s = m.speed*speedMul;
+    if (d < Math.max(0.12, s*dt)){ ch.pos.x = p.x; ch.pos.z = p.z; m.pts.shift(); continue; }
+    ch.pos.x += dx/d*s*dt; ch.pos.z += dz/d*s*dt; ch.spd = m.speed; ch.face = Math.atan2(dx,dz); }
+}
+
+// =====================================================================
+// CAMERA + LIGHT
+// =====================================================================
+const cam = {pos:new THREE.Vector3(0,40,40), look:new THREE.Vector3(), gp:new THREE.Vector3(0,40,40), gl:new THREE.Vector3(), k:3, follow:null};
+let shakeAmt = 0; const shake = a => { shakeAmt = Math.max(shakeAmt, a); };
+let panelOpen = false;
+function camTo(x,z,dist,h,k=3, lookShift=0){ cam.gp.set(x, h, z+dist+lookShift); cam.gl.set(x, 0, z+lookShift); cam.k = k; cam.follow = null; }
+function camTavern(i, zoom=1, k=3){ const t = W.taverns[i];
+  const shift = (portrait && panelOpen) ? 6.5*zoom : 0;
+  camTo(t.cx, t.cz, (portrait?16:12.5)*zoom, (portrait?24:16.5)*zoom, k, shift); }
+function camCity(k=2){ const shift = (portrait && panelOpen) ? 14 : 0; camTo(0, 1, portrait?46:34, portrait?66:44, k, shift); }
+function updateCamera(dt){
+  if (cam.follow){ const f = cam.follow, off = portrait ? {y:24, z:15} : {y:17, z:12}; cam.gp.set(f.pos.x, off.y, f.pos.z+off.z); cam.gl.set(f.pos.x, 0, f.pos.z); }
+  const k = 1 - Math.exp(-cam.k*dt); cam.pos.lerp(cam.gp, k); cam.look.lerp(cam.gl, k);
+  camera.position.copy(cam.pos);
+  if (shakeAmt > 0){ camera.position.x += rand(-1,1)*shakeAmt; camera.position.y += rand(-1,1)*shakeAmt; shakeAmt = Math.max(0, shakeAmt - dt*2.5); }
+  camera.lookAt(cam.look);
+  sun.position.set(cam.look.x-16, 36, cam.look.z+14); sun.target.position.copy(cam.look);
+}
+function updateLight(dt){
+  dayF += (dayTarget - dayF) * Math.min(1, dt*0.8);
+  scene.background.copy(SKY_DAY).lerp(SKY_NIGHT, dayF); scene.fog.color.copy(scene.background);
+  sun.color.copy(SUN_DAY).lerp(SUN_NIGHT, dayF); sun.intensity = lerp(0.85, 0.42, dayF); hemi.intensity = lerp(0.62, 0.42, dayF);
+  if (!W) return;
+  W.lamps.forEach(l => l.material.emissive.setRGB(dayF, dayF*0.75, dayF*0.3));
+  W.taverns.forEach(t => t.lantern.material.emissive.setRGB(dayF, dayF*0.7, dayF*0.25));
+  W.beacon.material.emissive.setRGB(dayF*0.9, dayF*0.85, dayF*0.3);
+}
+
+// =====================================================================
+// GAME STATE + UI
+// =====================================================================
+const ME = 0;
+let S = null, phase = 'menu', token = 0, setup = {rivals:3, diff:'normal'}, tab = null, fast = false;
+let tut = 0, tipsOff = false, tipIdx = 0, seenCases = 0, nightEvents = [];
+const STAFF = PP.STAFF, MISSIONS = PP.MISSIONS;
+const me = () => S.taverns[ME];
+const tname = id => S.taverns[id].name;
+const dotOf = id => `<span class="dotc" style="background:${S.taverns[id].css}"></span>`;
+
+function show(id){ ['#mMain','#mSetup','#mHow','#mEnd','#lDay','#lNight','#lSneak','#lBrawl','#lPick'].forEach(s => $(s).classList.toggle('hidden', s !== id)); }
+let bannerTimer = 0;
+function banner(txt, color, small, dur=1.6){ const b = $('#banner'); b.innerHTML = `<span style="color:${color}">${txt}</span>${small?`<small>${small}</small>`:''}`;
+  b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); clearTimeout(bannerTimer); bannerTimer = setTimeout(()=>b.classList.remove('show'), dur*1000); }
+function modal(html){ $('#modal').innerHTML = html; $('#modalLayer').classList.remove('hidden'); $('#modal').scrollTop = 0; }
+function closeModal(){ $('#modalLayer').classList.add('hidden'); }
+$('#modalLayer').addEventListener('click', e => { if ((e.target.id === 'modalLayer' && !$('#modal').dataset.lock) || e.target.closest('[data-close]')) closeModal(); });
+function toast(t){ banner(t, '#fff', null, 1.3); }
+
+// ---------------- menus ----------------
+$('#bPlay').onclick = () => { audioInit(); show('#mSetup'); };
+$('#bHow').onclick = () => show('#mHow');
+$$('[data-back]').forEach(b => b.onclick = () => show('#mMain'));
+$('#sRivals').onclick = e => { const b = e.target.closest('button'); if (!b) return; [...$('#sRivals').children].forEach(x => x.classList.toggle('on', x===b)); setup.rivals = +b.textContent; };
+$('#sDiff').onclick = e => { const b = e.target.closest('button'); if (!b) return; [...$('#sDiff').children].forEach(x => x.classList.toggle('on', x===b)); setup.diff = b.dataset.v; };
+$('#bGo').onclick = () => startGame();
+$('#dMenu').onclick = () => { modal(`<h2>Paused</h2><div class="row"><button class="btn green" id="pRes">Resume</button></div>
+  <div class="row"><button class="btn ghost sm" id="pTips">${tipsOff?'Turn tips ON':'Turn tips OFF'}</button><button class="btn ghost sm" id="pMute">${muted?'Sound ON':'Sound OFF'}</button></div>
+  <div class="row"><button class="btn pink sm" id="pQuit">Quit to menu</button></div>`);
+  $('#pRes').onclick = closeModal; $('#pQuit').onclick = () => { closeModal(); toMenu(); };
+  $('#pTips').onclick = () => { tipsOff = !tipsOff; closeModal(); renderAdvisor(); };
+  $('#pMute').onclick = () => { muted = !muted; closeModal(); }; };
+$('#dHelp').onclick = () => helpFor(tab);
+
+function toMenu(){ token++; phase = 'menu'; closeModal(); show('#mMain'); buildMenuScene(); }
+
+function startGame(){
+  token++; audioInit(); closeModal();
+  S = PP.createGame({rivals:setup.rivals, difficulty:setup.diff});
+  buildWorld(S.taverns.map(t => ({name:t.name, css:t.css})));
+  tut = 1; tipIdx = 0; seenCases = 0; fast = false;
+  dayF = 0; dayTarget = 0; cam.pos.set(0,70,60);
+  startDay(true);
+}
+
+// ---------------- DAY ----------------
+function startDay(first){
+  phase = 'day'; dayTarget = 0; speedMul = 1;
+  clearCustomers(); W.taverns.forEach(t => { t.poisonViz = 0; t.seats.forEach(s => s.stool.visible = true); });
+  W.guard.root.visible = false; W.arrow.visible = false;
+  S.taverns.forEach(t => { if (t.isBot) PP.botDay(S, t.id); });
+  show('#lDay'); setTab(null); sync3D(); renderTop();
+  if (!first) sfx.rooster();
+  banner(`DAY ${S.day}`, '#ffc23d', S.day===S.maxDays ? 'The final day! Make it count.' : 'Time to scheme.', 1.6);
+  const inbox = me().inbox.splice(0);
+  if (inbox.length) setTimeout(() => { if (phase==='day') modal(`<h2>📨 While you slept…</h2>${inbox.map(m=>`<div class="rline ${m.kind}">${esc(m.text)}</div>`).join('')}
+    <div class="row"><button class="btn" data-close>OK</button></div>`); }, 900);
+  renderAdvisor();
+}
+function renderTop(){
+  const p = me();
+  $('#dTitle').innerHTML = `DAY ${S.day}<small>OF ${S.maxDays} · SCHEME</small>`;
+  $('#dGold').textContent = '💰 ' + p.gold; $('#dRep').textContent = '⭐ ' + p.rep;
+  const unsolved = p.incidents.filter(i => !i.solved).length;
+  const tabBtn = k => $(`#tabs [data-tab=${k}]`);
+  [['crew', p.recruits.length && p.staff.length < PP.MAX_STAFF && S.day===1 && !p.staff.length],
+   ['missions', p.staff.some(st => STAFF[st.type].mission && !st.jailed && !p.plan.missions.find(m=>m.staffId===st.id))],
+   ['case', p.incidents.length > seenCases && unsolved]].forEach(([k,on]) => {
+    const b = tabBtn(k); let d = b.querySelector('.dot'); if (on && !d){ d = document.createElement('span'); d.className = 'dot'; b.appendChild(d); } if (!on && d) d.remove(); });
+}
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b) return; sfx.click(); setTab(tab === b.dataset.tab ? null : b.dataset.tab); });
+$('#panelX').onclick = () => setTab(null);
+$('#nightBtn').onclick = () => { sfx.click(); confirmNight(); };
+
+function setTab(t){
+  tab = t; panelOpen = !!t;
+  $$('#tabs [data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  $('#panel').classList.toggle('closed', !t);
+  if (t === 'case') seenCases = me().incidents.length;
+  if (t === 'missions') { camCity(); highlightTarget(null); } else camTavern(ME);
+  if (tut === 1 && t === 'crew') tut = 2;
+  if (tut === 3 && t === 'missions') tut = 4;
+  if (tut === 5 && t === 'bribe') tut = 6;
+  renderPanel(); renderTop(); renderAdvisor();
+}
+function renderPanel(){
+  if (!tab) return;
+  const titles = {crew:'👥 Your Crew', missions:'🗺️ Tonight\'s Missions', bribe:'🪙 Bribe the Captain', case:'🔍 Case File', tavern:'🍺 Your Tavern'};
+  $('#panelTitle').textContent = titles[tab];
+  $('#panelBody').innerHTML = ({crew:crewHTML, missions:missionsHTML, bribe:bribeHTML, case:caseHTML, tavern:tavernHTML})[tab]();
+}
+function refresh(){ renderTop(); renderPanel(); sync3D(); renderAdvisor(); }
+
+// ---- crew ----
+function staffStatus(st){
+  const p = me(), m = p.plan.missions.find(x => x.staffId === st.id);
+  if (st.jailed) return `<span class="chip bad">⛓️ Jailed ${st.jailed} more night${st.jailed>1?'s':''}</span>`;
+  if (m) return `<span class="chip gold">${MISSIONS[m.type].icon} ${MISSIONS[m.type].name} → ${m.target===ME?'home':esc(tname(m.target))}</span>`;
+  if (!STAFF[st.type].mission) return `<span class="chip good">🏠 Guards your tavern</span>`;
+  return `<span class="chip">💤 Idle tonight</span>`;
+}
+function crewHTML(){
+  const p = me(); let h = `<div class="sec">Your crew (${p.staff.length}/${PP.MAX_STAFF}) · wages ${p.staff.filter(x=>!x.jailed).reduce((a,x)=>a+x.wage,0)+10}g a night</div>`;
+  if (!p.staff.length) h += `<div class="empty">Nobody works for you yet. Hire someone from the door below. 👇</div>`;
+  p.staff.forEach(st => { const S0 = STAFF[st.type];
+    h += `<div class="item"><div class="ic">${S0.icon}</div><div class="tx"><b>${esc(st.name)} · ${S0.name}</b><small>${S0.desc}</small>
+      <i>“${esc(st.note)}”</i>${staffStatus(st)}</div><button class="mini ghost" data-fire="${st.id}">Fire</button></div>`; });
+  h += `<div class="sec">Recruits at your door today</div>`;
+  if (!p.recruits.length) h += `<div class="empty">No one else is looking for work today.</div>`;
+  p.recruits.forEach(r => { const S0 = STAFF[r.type], can = p.gold >= r.cost && p.staff.length < PP.MAX_STAFF;
+    h += `<div class="item recruit"><div class="ic">${S0.icon}</div><div class="tx"><b>${esc(r.name)} · ${S0.name}</b><small>${S0.desc} Wage ${r.wage}g a night.</small>
+      <i>Note: ${esc(r.name)} ${esc(r.note)}.</i></div><button class="mini" data-hire="${r.id}" ${can?'':'disabled'}>Hire ${r.cost}g</button></div>`; });
+  h += `<div class="note" style="margin-top:8px">🐀 Some recruits are secretly moles for a rival. Their notes can give them away… or not.</div>`;
+  return h;
+}
+$('#panelBody').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || phase !== 'day') return;
+  const p = me();
+  if (b.dataset.hire){ const err = PP.hire(S, ME, +b.dataset.hire); if (err) return toast(err); sfx.hire();
+    const st = p.staff[p.staff.length-1]; banner(`${STAFF[st.type].icon} ${st.name} joined!`, '#7cff4f', null, 1.2);
+    if (tut === 2) tut = 3; refresh(); return; }
+  if (b.dataset.fire){ const st = p.staff.find(x => x.id === +b.dataset.fire);
+    modal(`<h2>Fire ${esc(st.name)}?</h2><div class="note">You won't get the hiring fee back.</div><div class="row"><button class="btn pink sm" id="fY">Fire them</button><button class="btn ghost sm" id="fN">Keep</button></div>`);
+    $('#fY').onclick = () => { PP.fire(S, ME, st.id); closeModal(); sfx.miss(); refresh(); }; $('#fN').onclick = closeModal; return; }
+  if (b.dataset.agent) return missionPicker(+b.dataset.agent);
+  if (b.dataset.bribe !== undefined){ PP.setBribe(S, ME, b.dataset.bribe === 'max' ? Math.floor(p.gold*0.5) : (p.plan.bribe + (+b.dataset.bribe))); sfx.coin(); refresh(); return; }
+  if (b.dataset.accuse) return accusePicker(+b.dataset.accuse);
+  if (b.dataset.ale){ const err = PP.upgradeAle(S, ME); if (err) return toast(err); sfx.coin(); banner('🍻 Better ale!', '#ffc23d', null, 1); refresh(); return; }
+  if (b.dataset.price){ PP.setPrice(S, ME, b.dataset.price); sfx.click(); refresh(); return; }
+  if (b.dataset.dossier) return dossier(+b.dataset.dossier);
+});
+
+// ---- missions ----
+function missionsHTML(){
+  const p = me(); const agents = p.staff.filter(st => STAFF[st.type].mission);
+  let h = `<div class="sec">Tap an agent to give orders</div>`;
+  if (!agents.length) h += `<div class="empty">You have no agents who can go on missions. Hire a Poisoner, Pickpocket, Bruiser, Spy, Bard or Smooth-talker in 👥 CREW.</div>`;
+  agents.forEach(st => { const S0 = STAFF[st.type];
+    h += `<div class="item ${st.jailed?'':'agent'}"><div class="ic">${S0.icon}</div><div class="tx"><b>${esc(st.name)} · ${S0.name}</b>${staffStatus(st)}</div>
+      ${st.jailed ? '' : `<button class="mini" data-agent="${st.id}">Orders</button>`}</div>`; });
+  const guards = p.staff.filter(st => !STAFF[st.type].mission);
+  if (guards.length) h += `<div class="note" style="margin-top:6px">🏠 ${guards.map(g=>esc(g.name)).join(', ')} stay${guards.length>1?'':'s'} home on guard duty.</div>`;
+  h += `<div class="sec">The city</div>` + S.taverns.filter(t=>t.id!==ME).map(t => `<div class="item"><div class="ic">${dotOf(t.id)}</div><div class="tx"><b>${esc(t.name)}</b><small>⭐ ${t.rep} · ${'💰'.repeat(PP.wealthTier(t.gold))} rumored wealth</small></div><button class="mini ghost" data-dossier="${t.id}">Dossier</button></div>`).join('');
+  return h;
+}
+function highlightTarget(id){ W.taverns.forEach(t => t.ringOn = (t.i === id)); }
+function missionPicker(sid){
+  const p = me(), st = p.staff.find(x => x.id === sid), mt = STAFF[st.type].mission, M = MISSIONS[mt], cur = p.plan.missions.find(m => m.staffId === sid);
+  const targets = M.selfOnly ? [ME] : M.selfOk ? [...S.taverns.filter(t=>t.id!==ME).map(t=>t.id), ME] : S.taverns.filter(t=>t.id!==ME).map(t=>t.id);
+  const risk = Math.round(M.catch*100);
+  let h = `<h2>${STAFF[st.type].icon} ${esc(st.name)}</h2><div class="item" style="background:rgba(255,194,61,.12)"><div class="ic">${M.icon}</div><div class="tx"><b>${M.name}</b><small>${M.desc}</small>
+    ${M.harm||mt==='spy' ? `<span class="chip ${risk>=20?'bad':''}">🚨 Catch risk ~${risk}% · +12% if a rival out-bribes you · 0% if YOU win the bribe</span>` : ''}</div></div>
+    <div class="sec">Choose a target</div>`;
+  targets.forEach(id => { const t = S.taverns[id], sel = cur && cur.target === id;
+    const warn = (mt==='poison' && p.intel[id] && p.intel[id].staff.includes('taster')) ? '<span class="chip bad">👃 Your spy saw a Taster here</span>' : '';
+    h += `<div class="item ${sel?'sel':''}" data-pick="${id}" style="cursor:pointer"><div class="ic">${id===ME?'🏠':dotOf(id)}</div><div class="tx"><b>${id===ME?(mt==='spy'?'Your own tavern (hunt traitors)':'Your own tavern'):esc(t.name)}</b>
+      ${id===ME?'':`<small>⭐ ${t.rep} · ${'💰'.repeat(PP.wealthTier(t.gold))}</small>`}${warn}</div><div style="font-size:22px">${sel?'✅':'›'}</div></div>`; });
+  h += `<div class="row"><button class="btn ghost sm" id="mIdle">💤 Stay idle</button><button class="btn sm" id="mDone">Done</button></div>`;
+  modal(h);
+  $$('#modal [data-pick]').forEach(el => el.onclick = () => { const id = +el.dataset.pick; const err = PP.setMission(S, ME, {staffId:sid, type:mt, target:id});
+    if (err) return toast(err); sfx.click(); highlightTarget(id); if (tut === 4) tut = 5; closeModal(); refresh();
+    banner(`${M.icon} ${st.name} → ${id===ME?'home':tname(id)}`, '#ffc23d', null, 1.1); });
+  $('#mIdle').onclick = () => { PP.clearMission(S, ME, sid); closeModal(); refresh(); };
+  $('#mDone').onclick = closeModal;
+}
+function dossier(id){
+  const t = S.taverns[id], intel = me().intel[id], sus = suspicionFor(id);
+  let h = `<h2>${dotOf(id)} ${esc(t.name)}</h2>
+    <div class="item"><div class="ic">🏷️</div><div class="tx"><b>Their colours</b><small>Crew wears <b>${t.color}</b> and is known for <b>${esc(t.mark)}</b>.</small></div></div>
+    <div class="item"><div class="ic">⭐</div><div class="tx"><b>Reputation ${t.rep}</b><small>Rumored wealth: ${'💰'.repeat(PP.wealthTier(t.gold))}</small></div></div>`;
+  if (intel) h += `<div class="item"><div class="ic">🔍</div><div class="tx"><b>Spy report (Day ${intel.day})</b><small>Crew: ${intel.staff.map(x=>STAFF[x].icon+' '+STAFF[x].name).join(', ')||'nobody'}<br>Gold: ~${Math.round(intel.gold/10)*10} · Ale ${'★'.repeat(intel.ale)}<br>
+    Targets that night: ${intel.attacks.length?intel.attacks.map(a=>MISSIONS[a.type].icon+' '+(a.target===ME?'YOU':esc(tname(a.target)))).join(', '):'none'}</small></div></div>`;
+  else h += `<div class="item"><div class="ic">❓</div><div class="tx"><b>Crew & plans unknown</b><small>Send a 🕵️ Spy to find out what they're hiding.</small></div></div>`;
+  if (sus) h += `<div class="item"><div class="ic">🧩</div><div class="tx"><b>Clues pointing at them: ${sus}</b><small>Check your 🔍 Case File.</small></div></div>`;
+  h += `<div class="row"><button class="btn sm" data-close>Close</button></div>`;
+  modal(h);
+}
+function suspicionFor(id){ return me().incidents.filter(i=>!i.solved).reduce((a,i) => a + i.clues.filter(c => c.points === id).length, 0); }
+
+// ---- bribe ----
+function bribeHTML(){
+  const p = me(), talk = PP.active(p,'talker');
+  return `<div class="note" style="text-align:left;font-size:14px;opacity:.9">Slip the Guard Captain a <b>secret</b> bribe. The <b>highest bidder</b> wins his favour tonight:</div>
+    <div class="item"><div class="ic">😎</div><div class="tx"><small><b>Your agents can't be caught</b> tonight, and the Guard watches everyone else harder (+12% risk for them).</small></div></div>
+    <div class="item"><div class="ic">🤫</div><div class="tx"><small>Nobody sees the bids. <b>Only the winner pays.</b> Ties mean nobody wins.${talk?' Your 🎩 Smooth-talker makes your bid count <b>50% more</b>.':''}</small></div></div>
+    <div class="big">🪙 ${p.plan.bribe}</div>
+    <div class="row" style="margin-top:4px"><button class="mini ghost" data-bribe="-25">−25</button><button class="mini" data-bribe="25">+25</button><button class="mini" data-bribe="50">+50</button>
+    <button class="mini" data-bribe="max">Half my gold</button><button class="mini ghost" data-bribe="${-p.plan.bribe}">Clear</button></div>
+    <div class="note" style="margin-top:10px">You have ${p.gold} gold. Unpaid bids cost nothing.</div>`;
+}
+
+// ---- case file ----
+function caseHTML(){
+  const p = me(); if (!p.incidents.length) return `<div class="empty">No crimes against you… yet. When someone attacks your tavern, the clues land here and you can accuse them.</div>`;
+  let h = `<div class="note" style="text-align:left;opacity:.9">Match clues to each rival's <b>colour</b> and <b>outfit</b> (see their Dossier). One accusation per day. Right = they're fined 80 gold. Wrong = −8 rep for you.</div>`;
+  p.incidents.slice().reverse().forEach(inc => { const M = MISSIONS[inc.type];
+    h += `<div class="item" style="flex-direction:column;align-items:stretch"><div style="display:flex;gap:10px;align-items:center"><div class="ic">${M.icon}</div>
+      <div class="tx"><b>Night ${inc.day}: ${inc.blocked?'Attempted ':''}${M.name.toLowerCase()}</b>
+      ${inc.solved?`<span class="chip good">✅ Solved: ${esc(tname(inc.culprit))}</span>`:`<span class="chip bad">❓ Unsolved</span>`}
+      ${inc.accused.filter(a=>a!==inc.culprit).map(a=>`<span class="chip">❌ Not ${esc(tname(a))}</span>`).join(' ')}</div>
+      ${inc.solved?'':`<button class="mini pink" data-accuse="${inc.id}" ${p.accusedToday?'disabled':''}>Accuse</button>`}</div>
+      ${inc.clues.map(c => `<div class="clue ${c.sure?'sure':''}">${c.kind==='spy'?'🕵️':c.kind==='color'?'🧵':c.kind==='mark'?'👁️':'🌫️'} ${esc(c.text)}</div>`).join('')}</div>`; });
+  if (p.accusedToday) h += `<div class="note">You've already accused someone today.</div>`;
+  h += `<div class="sec">Who wears what</div>` + S.taverns.filter(t=>t.id!==ME).map(t => `<div class="item"><div class="ic">${dotOf(t.id)}</div><div class="tx"><b>${esc(t.name)}</b><small>${t.color} · ${esc(t.mark)}</small></div></div>`).join('');
+  return h;
+}
+function accusePicker(incId){
+  const p = me(), inc = p.incidents.find(i => i.id === incId);
+  let h = `<h2>⚖️ Who did it?</h2><div class="note" style="text-align:left">${inc.clues.map(c=>esc(c.text)).join('<br>')}</div><div class="sec">Accuse</div>`;
+  S.taverns.filter(t => t.id !== ME).forEach(t => { const tried = inc.accused.includes(t.id);
+    const n = inc.clues.filter(c => c.points === t.id).length;
+    h += `<div class="item" data-sus="${t.id}" style="cursor:pointer;${tried?'opacity:.4;pointer-events:none':''}"><div class="ic">${dotOf(t.id)}</div><div class="tx"><b>${esc(t.name)}</b><small>${t.color} · ${esc(t.mark)}${n?` · <b>${n} clue${n>1?'s':''} match</b>`:''}</small></div><div style="font-size:22px">👉</div></div>`; });
+  h += `<div class="row"><button class="btn ghost sm" id="aN">Not yet</button></div>`;
+  modal(h); $('#aN').onclick = closeModal;
+  $$('#modal [data-sus]').forEach(el => el.onclick = () => {
+    const r = PP.accuse(S, ME, incId, +el.dataset.sus); if (r.err) return toast(r.err);
+    closeModal(); refresh();
+    if (r.correct){ sfx.win(); banner('GUILTY!', '#7cff4f', `${tname(+el.dataset.sus)} was fined ${r.fine} gold. +6 rep for you`, 2.4); W.owners[ME].cheer = true; setTimeout(()=>W.owners[ME].cheer=false, 2000); }
+    else { sfx.miss(); banner('WRONG!', '#ff4d6d', 'The city laughs. −8 rep', 2.2); }
+  });
+}
+
+// ---- tavern ----
+function tavernHTML(){
+  const p = me(), PR = PP.PRICES, price = 6 + p.ale + PR[p.price].add;
+  let h = `<div class="item"><div class="ic">🍻</div><div class="tx"><b>Ale quality ${'★'.repeat(p.ale)}${'☆'.repeat(5-p.ale)}</b><small>Better ale draws more customers and sells for more (now ${price}g a mug).</small></div>
+    ${p.ale<5?`<button class="mini" data-ale="1" ${p.gold<PP.aleCost(p)?'disabled':''}>Upgrade ${PP.aleCost(p)}g</button>`:''}</div>
+    <div class="sec">Prices</div><div class="pricebtns">${Object.keys(PR).map(k => `<button class="${p.price===k?'on':''}" data-price="${k}">${PR[k].name}<br><small>${k==='cheap'?'more customers':k==='pricey'?'fewer, richer':'balanced'}</small></button>`).join('')}</div>`;
+  if (p.last) h += `<div class="sec">Last night</div><div class="trio"><div><b>${p.last.served}</b>served</div><div><b class="green" style="color:var(--poison)">+${p.last.income}</b>earned</div><div><b style="color:var(--pink)">−${p.last.wages}</b>wages</div></div>`;
+  h += `<div class="sec">Rivals (what the city knows)</div>` + S.taverns.filter(t=>t.id!==ME).map(t => `<div class="item"><div class="ic">${dotOf(t.id)}</div><div class="tx"><b>${esc(t.name)}</b><small>⭐ ${t.rep} · ${'💰'.repeat(PP.wealthTier(t.gold))} · crew: ${me().intel[t.id]?'spied':'??? (secret)'}</small></div><button class="mini ghost" data-dossier="${t.id}">Dossier</button></div>`).join('');
+  return h;
+}
+
+// ---- advisor (real-time hints) ----
+function tips(){
+  const p = me(), out = [];
+  if (S.day === 1 && tut >= 1 && tut <= 6){
+    const T = {
+      1:{t:'Welcome to Ashveil, boss! I\'m Bertha, your barkeep. Rivals scheme in secret here, and you\'ll never see their plans. First, tap <b>👥 CREW</b> and hire someone shady.', g:'#tabs [data-tab=crew]'},
+      2:{t:'Each recruit has a skill. Read the <b>note</b>: a shifty one might be a <b>mole</b> for a rival. Try a <b>Poisoner</b> or <b>Pickpocket</b>, then tap <b>Hire</b>.', g:'.recruit .mini'},
+      3:{t:'Lovely. Now give them orders: tap <b>🗺️ MISSIONS</b>.', g:'#tabs [data-tab=missions]'},
+      4:{t:'Tap <b>Orders</b>, pick a target tavern, and your agent goes there tonight. Higher risk means more chance the Guard catches them.', g:'.agent .mini'},
+      5:{t:'Psst! Tap <b>🪙 BRIBE</b>. If you out-bid the rivals in secret, your agents <b>can\'t be caught</b> tonight.', g:'#tabs [data-tab=bribe]'},
+      6:{t:'When you\'re ready, tap <b>🌙 NIGHT</b>. You\'ll get to <b>play your missions yourself</b>!', g:'#nightBtn'}
+    };
+    if (tut === 2 && tab !== 'crew') return [{t:T[1].t, g:T[1].g}];
+    if (tut === 4 && tab !== 'missions') return [{t:T[3].t, g:T[3].g}];
+    return [T[tut]];
+  }
+  const unsolved = p.incidents.filter(i => !i.solved), fresh = p.last && p.last.newIncidents && p.last.newIncidents.length;
+  if (fresh && tab !== 'case' && !p.accusedToday) out.push({t:'You were hit last night! Open <b>🔍 CASES</b>, read the clues, and accuse the culprit.', g:'#tabs [data-tab=case]'});
+  if (tab === 'case' && unsolved.length && !p.accusedToday) out.push({t:'Compare each clue to the rivals\' <b>colours & outfits</b> at the bottom. Two matching clues is a strong case. One accusation per day!', g:null});
+  if (p.leaks >= 1 && p.staff.some(s=>s.type==='spy'&&!s.jailed) && !p.plan.missions.some(m=>m.type==='spy'&&m.target===ME))
+    out.push({t:'Plans leaking, or gold vanishing from the till? Someone on your crew may be a <b>traitor</b>. Send your 🕵️ Spy to spy on <b>your own tavern</b>.', g:'#tabs [data-tab=missions]'});
+  else if (p.leaks >= 1 && !p.staff.some(s=>s.type==='spy')) out.push({t:'Something smells rotten: ambushes or missing gold usually mean a <b>traitor</b>. Hire a 🕵️ Spy and point them at your own tavern.', g:'#tabs [data-tab=crew]'});
+  const exposed = p.staff.find(s => s.exposed); if (exposed) out.push({t:`<b>${esc(exposed.name)}</b> is a known traitor! Fire them in 👥 CREW before they leak more.`, g:'#tabs [data-tab=crew]'});
+  const idle = p.staff.find(st => STAFF[st.type].mission && !st.jailed && !p.plan.missions.find(m=>m.staffId===st.id));
+  if (idle) out.push({t:`<b>${esc(idle.name)}</b> has no orders tonight. Give them a mission in 🗺️ MISSIONS.`, g:'#tabs [data-tab=missions]'});
+  const wages = p.staff.filter(x=>!x.jailed).reduce((a,x)=>a+x.wage,0) + 10;
+  if (p.gold < wages*1.5) out.push({t:`Careful, gold is low. Wages of <b>${wages}g</b> are due tonight. If you can't pay, someone quits.`, g:null});
+  if (p.last && p.last.poisoned && !PP.active(p,'taster')) out.push({t:'You got poisoned. A 👃 <b>Taster</b> blocks every poison attempt. Hire one if they show up at your door.', g:'#tabs [data-tab=crew]'});
+  if (p.last && p.last.brawled && !PP.active(p,'bruiser')) out.push({t:'Brawls hurt! A 💪 <b>Bruiser</b> at home stops most of them.', g:'#tabs [data-tab=crew]'});
+  if (p.ale < 5 && p.gold > PP.aleCost(p) + 150) out.push({t:'You\'ve got gold to spare. <b>Better ale</b> brings more customers every night (🍺 TAVERN).', g:'#tabs [data-tab=tavern]'});
+  if (!Object.keys(p.intel).length && p.staff.some(s=>s.type==='spy')) out.push({t:'Rivals keep their crews secret. Send a 🕵️ Spy to learn who they employ and who they\'re targeting.', g:null});
+  if (p.plan.bribe === 0 && p.plan.missions.some(m => MISSIONS[m.type].harm)) out.push({t:'Sending agents out tonight? A secret <b>🪙 bribe</b> could make them uncatchable.', g:'#tabs [data-tab=bribe]'});
+  if (S.day >= S.maxDays-1) out.push({t:'Final nights! Score = <b>gold + reputation × 5</b>. Hit the leader hard and protect what you have.', g:null});
+  out.push({t:'Ready? Tap <b>🌙 NIGHT</b> to let the chaos begin.', g:'#nightBtn'});
+  return out;
+}
+function renderAdvisor(){
+  $$('.glow').forEach(el => el.classList.remove('glow'));
+  const a = $('#advisor');
+  if (tipsOff || phase !== 'day' || !S){ a.classList.add('hidden'); return; }
+  const list = tips(); const tip = list[tipIdx % list.length];
+  a.classList.remove('hidden'); a.classList.toggle('top', panelOpen && portrait);
+  $('#advT').innerHTML = tip.t + (list.length > 1 && S.day > 1 ? ` <span class="nx" id="advN">next tip ›</span>` : '');
+  if (tip.g) requestAnimationFrame(() => { const el = $(tip.g); if (el) el.classList.add('glow'); });
+  const n = $('#advN'); if (n) n.onclick = () => { tipIdx++; renderAdvisor(); };
+}
+$('#advX').onclick = () => { $('#advisor').classList.add('hidden'); $$('.glow').forEach(el => el.classList.remove('glow')); if (tut && tut < 7) tut = 7; };
+function helpFor(t){
+  const H = {
+    null:'<b>Day</b> is for scheming. Use the tabs: 👥 hire crew, 🗺️ give missions, 🪙 bribe the Captain, 🔍 solve attacks, 🍺 improve your tavern. Then 🌙 NIGHT.',
+    crew:'Hire up to 5. Agents (🧪🗡️💪🕵️🎻🎩) go on missions; a 👃 Taster and any agent left idle protect your home. Wages are paid every night. <b>Moles</b> leak your plans and skim your gold.',
+    missions:'Each agent can do one mission per night. Rivals never see your orders. Caught agents go to jail for 2 nights, and the city learns who sent them.',
+    bribe:'Secret auction for the Guard Captain. Highest bid wins and pays; everyone else pays nothing. The winner\'s agents can\'t be caught.',
+    case:'Attacks are anonymous. Clues can lie (decoy threads!) but outfits and spy reports are more reliable. Accuse once per day.',
+    tavern:'More customers = more gold. Customers like good ale, a good reputation, bards and cheap prices. Poison and brawls scare them off.'
+  };
+  modal(`<h2>❓ Help</h2><div class="how" style="font-size:15px">${H[t]||H.null}</div><div class="row"><button class="btn sm" data-close>Got it</button></div>`);
+}
+
+// ---- 3D sync for the day ----
+function sync3D(){
+  const p = me(), t = W.taverns[ME], keep = new Set();
+  const slots = [-3.6,-1.8,0,1.8,3.6];
+  p.staff.forEach((st,k) => { keep.add(st.id); let ch = W.staff.get(st.id);
+    if (!ch){ ch = makeChar(LOOK[st.type]); const door = toW(t,{x:0,z:6.5}); ch.pos = {x:door.x, z:door.z}; world.add(ch.root); W.staff.set(st.id, ch);
+      ch.tag = sprite(textTex(st.name, '#ffffff'), 2.0, 0.75); ch.tag.position.y = 2.95; ch.root.add(ch.tag);
+      ch.bub = sprite(emojiTex('💤','#ffffff'), 0.9); ch.bub.position.y = 3.75; ch.root.add(ch.bub);
+      walk(ch, route(ch.pos, toW(t,{x:slots[k],z:-0.2})), 4).then(() => { ch.face = faceLocal(t,0,-1); }); }
+    else if (!W.movers.size){ const goal = toW(t,{x:slots[k],z:-0.2}); if (d2(ch.pos, goal) > 0.3) walk(ch, route(ch.pos, goal), 4).then(()=>{ ch.face = faceLocal(t,0,-1); }); }
+    const m = p.plan.missions.find(x => x.staffId === st.id);
+    const e = st.jailed ? '⛓️' : m ? MISSIONS[m.type].icon : STAFF[st.type].mission ? '💤' : '🛡️';
+    ch.bub.material.map = emojiTex(e, st.exposed ? '#ff9a9a' : '#ffffff'); ch.root.visible = true; });
+  for (const [id,ch] of W.staff){ if (!keep.has(id)){ world.remove(ch.root); W.staff.delete(id); } }
+  // recruits waiting outside
+  W.recruits.forEach(r => world.remove(r.root)); W.recruits = [];
+  p.recruits.forEach((r,k) => { const ch = makeChar(LOOK[r.type]); const pos = toW(t,{x:-2.6+k*2.6, z:8.2}); ch.pos = pos; ch.face = faceLocal(t,0,-1);
+    ch.root.position.set(pos.x,0,pos.z); const q = sprite(emojiTex(STAFF[r.type].icon,'#fff7e3'), 1.0); q.position.y = 3.0; ch.root.add(q); world.add(ch.root); W.recruits.push(ch); });
+}
+
+// =====================================================================
+// NIGHT
+// =====================================================================
+$('#skipBtn').onclick = () => { fast = !fast; $('#skipBtn').textContent = fast ? '▶ Normal' : '⏩ Fast'; speedMul = fast ? 3 : 1; };
+function caption(t){ $('#caption').innerHTML = t; }
+function confirmNight(){
+  const p = me(), idle = p.staff.filter(st => STAFF[st.type].mission && !st.jailed && !p.plan.missions.find(m=>m.staffId===st.id));
+  if (S.day === 1 && !p.plan.missions.length && p.staff.length === 0){
+    modal(`<h2>🌙 Start the night?</h2><div class="note" style="text-align:left">You haven't hired anyone. Your tavern will just serve ale tonight. That's fine, but you'll miss the fun!</div>
+      <div class="row"><button class="btn ghost sm" id="cN">Go back</button><button class="btn sm" id="cY">Start night</button></div>`);
+    $('#cN').onclick = closeModal; $('#cY').onclick = () => { closeModal(); runNight(); }; return; }
+  if (idle.length){ modal(`<h2>🌙 Start the night?</h2><div class="note" style="text-align:left">${idle.map(x=>esc(x.name)).join(', ')} ${idle.length>1?'have':'has'} no orders. Idle crew help guard your tavern.</div>
+      <div class="row"><button class="btn ghost sm" id="cN">Give orders</button><button class="btn sm" id="cY">Start night</button></div>`);
+    $('#cN').onclick = () => { closeModal(); setTab('missions'); }; $('#cY').onclick = () => { closeModal(); runNight(); }; return; }
+  runNight();
+}
+
+async function runNight(){
+  const tk = ++token; phase = 'night'; if (tut < 7) tut = 7;
+  setTab(null); $('#advisor').classList.add('hidden'); $$('.glow').forEach(el => el.classList.remove('glow'));
+  show('#lNight'); $('#nightTitle').textContent = `NIGHT ${S.day}`; fast = false; speedMul = 1; $('#skipBtn').textContent = '⏩ Fast';
+  W.recruits.forEach(r => world.remove(r.root)); W.recruits = [];
+  W.staff.forEach(ch => ch.root.visible = false);
+  dayTarget = 1; camCity(1.2); sfx.owl();
+  caption('🌙 Night falls on Ashveil. Customers pour in… and agents slip into the shadows.');
+  const roll = PP.rollNight(S); nightEvents = roll.events;
+  W.guard.root.visible = true;
+  spawnNightCustomers();
+  await wait(2600); if (tk !== token) return;
+  if (roll.fav === ME){ banner('😎 THE CAPTAIN IS YOURS', '#7cff4f', 'Your agents can\'t be caught tonight', 2); await wait(1800); if (tk !== token) return; }
+  const mine = roll.events.filter(e => e.by === ME).length;
+  if (!roll.events.length){ caption('🍺 A quiet night. Nobody made a move… or did they?'); await wait(2000); }
+  let k = 0;
+  for (const e of roll.events){
+    if (tk !== token) return; k++;
+    if (e.by === ME && e.game && !e.foiled){
+      const choice = await mgIntro(e); if (tk !== token) return;
+      if (choice === 'play'){ const r = await playGame(e); if (tk !== token) return; Object.assign(e, r); await afterGame(e, tk); continue; }
+    }
+    await animateEvent(e, tk);
+  }
+  if (tk !== token) return;
+  W.guard.root.visible = false; W.arrow.visible = false;
+  caption('🌅 Dawn breaks over Ashveil…'); dayTarget = 0.35; camCity(1.2);
+  await wait(fast ? 500 : 1500); if (tk !== token) return;
+  const res = PP.applyNight(S, roll);
+  showReport(res);
+}
+
+function nightCustomerCount(t){ const s = S.taverns[t.i]; return clamp(Math.round(2 + s.rep/25 + s.ale*0.6 + PP.active(s,'bard')), 2, 6); }
+function spawnNightCustomers(){
+  clearCustomers();
+  W.taverns.forEach(t => { const n = nightCustomerCount(t);
+    t.seats.slice(0,n).forEach((seat,k) => {
+      const ch = makeChar({body:pickA(CUST_BODY), skin:pickA(CUST_SKIN), hat:pickA(CUST_HAT), hatColor:pickA(CUST_BODY), scale:rand(0.85,1)});
+      const a = Math.atan2(t.cz, t.cx) + rand(-0.5,0.5); ch.pos = {x:Math.cos(a)*5.5, z:Math.sin(a)*5.5}; world.add(ch.root);
+      ch.tav = t.i; ch.seat = seat; seat.cust = ch; W.customers.push(ch);
+      setTimeout(() => { if (!ch.gone) walk(ch, [toW(t,{x:0,z:6.2}), toW(t,{x:0,z:3.6}), toW(t,{x:0,z:0}), toW(t,{x:seat.x,z:0}), toW(t,{x:seat.x,z:seat.z})], 3.4)
+        .then(() => { if (ch.gone) return; ch.sit = true; ch.face = faceLocal(t, seat.f, 0); ch.bub = sprite(emojiTex('🍺','#ffffff'), 0.8); ch.bub.position.y = 2.7; ch.root.add(ch.bub); }); }, k*450 + Math.random()*300);
+    }); });
+}
+function clearCustomers(){ (W.customers||[]).forEach(c => { c.gone = true; world.remove(c.root); if (c.seat) c.seat.cust = null; }); W.customers = []; W.movers.forEach(m => { if (m.ch.tav !== undefined){ W.movers.delete(m); } }); }
+function scareCustomers(i, frac, mood){
+  const t = W.taverns[i]; const list = W.customers.filter(c => c.tav === i && !c.leaving);
+  list.slice(0, Math.max(1, Math.round(list.length*frac))).forEach(c => {
+    c.leaving = true; c.sit = false; if (c.bub){ c.bub.material.map = emojiTex(mood==='sick'?'🤢':mood==='angry'?'😡':'😱', mood==='sick'?'#b6ff8f':'#ffb3b3'); }
+    if (mood === 'sick') c.head.material = mat(0x7cff4f);
+    const l = toL(t, c.pos); walk(c, [toW(t,{x:l.x,z:0}), toW(t,{x:0,z:0}), toW(t,{x:0,z:6.2}), toW(t,{x:rand(-4,4),z:13})], 5.5).then(() => { c.root.visible = false; });
+  });
+}
+
+// ---- cinematic for one mission ----
+function figureFor(e){ return e.by === ME ? makeChar(LOOK[e.staffType]) : makeChar(HOODED); }
+async function animateEvent(e, tk){
+  const o = PP.outcome(e), mine = e.by === ME, vsMe = e.target === ME && !mine, M = MISSIONS[e.type], t = W.taverns[e.target];
+  const ok = () => tk === token;
+  if (e.type === 'cover'){ if (mine){ camTavern(ME,1.3); caption(`🧹 ${esc(e.staffName)} is quietly covering your tracks…`); await wait(fast?300:1300); } return; }
+  if (e.type === 'spy' && e.target === e.by){ if (mine){ camTavern(ME,1.1); caption(`🕵️ ${esc(e.staffName)} keeps a close eye on your own crew tonight…`); await wait(fast?300:1500); } return; }
+  if (!mine && !vsMe && fast) return;
+  const quick = !mine && !vsMe;
+  camTavern(e.target, quick ? 1.5 : 1.15, 2.5);
+  if (mine) caption(`${STAFF[e.staffType].icon} Your ${STAFF[e.staffType].name} <b>${esc(e.staffName)}</b> heads to <b>${esc(tname(e.target))}</b> to ${M.name.toLowerCase()}…`);
+  else if (vsMe){ caption(`⚠️ A <b>hooded figure</b> is creeping toward <b>YOUR</b> tavern…`); sfx.alarm(); }
+  else caption(`👀 Shadows move near <b>${esc(tname(e.target))}</b>…`);
+  const fig = figureFor(e);
+  const start = toW(t, {x:rand(-3,3), z:12.5}); addChar(fig, start);
+  const spd = quick ? 6 : 4;
+  const door = [toW(t,{x:0,z:6.2})];
+  await walk(fig, door, spd); if (!ok()) return removeChar(fig);
+  if (o === 'foiled'){
+    burst(fig.pos.x,1.5,fig.pos.z,0xff4d6d,16,{spd:4,up:5}); floatText(fig.pos.x,3.2,fig.pos.z,'AMBUSH!','#ff4d6d'); shake(0.35); sfx.alarm();
+    if (mine) caption(`🚨 <b>Ambush!</b> They were waiting for ${esc(e.staffName)}. Someone must have warned them…`);
+    fig.stun = 0.8; await wait(800); await walk(fig, [toW(t,{x:rand(-5,5),z:14})], 7); removeChar(fig); await wait(quick?200:600); return;
+  }
+  if (o === 'caught'){
+    const g = W.guard; g.chasing = true; sfx.whistle();
+    await walk(g, [{x:fig.pos.x*0.9, z:fig.pos.z*0.9}], 9); if (!ok()) return removeChar(fig);
+    fig.stun = 2; burst(fig.pos.x,2.2,fig.pos.z,0xfff27a,12,{spd:3,up:3}); floatText(fig.pos.x,3.4,fig.pos.z,'CAUGHT!','#4cc9f0'); sfx.busted(); shake(0.3);
+    caption(`⛓️ The Guard caught ${mine?`your agent <b>${esc(e.staffName)}</b>`:`an agent of <b>${esc(tname(e.by))}</b>`}!`);
+    await wait(quick?900:1700); g.chasing = false; removeChar(fig); return;
+  }
+  if (o === 'fizzled'){ caption(mine ? `💨 ${esc(e.staffName)} lost their nerve and slipped away.` : '💨 The figure slips away into the night.');
+    await walk(fig, [toW(t,{x:rand(-5,5),z:14})], spd); removeChar(fig); return; }
+  if (e.type === 'spy'){
+    await walk(fig, [toW(t,{x:-4.2,z:6.0})], spd); fig.face = faceLocal(t,0,-1);
+    const q = sprite(emojiTex('🔍','#ffffff'), 1); q.position.y = 3.1; fig.root.add(q);
+    if (mine) caption(`🔍 ${esc(e.staffName)} peeks through ${esc(tname(e.target))}'s window…`);
+    await wait(quick?600:1500); await walk(fig, [toW(t,{x:-6,z:13})], spd); removeChar(fig); return;
+  }
+  const inside = {poison:KEG_STAND, steal:{x:-1.2,z:-2.0}, brawl:{x:0,z:0.2}, rumor:{x:0,z:2.4}}[e.type];
+  await walk(fig, route(fig.pos, toW(t, inside)), spd); if (!ok()) return removeChar(fig);
+  if (o === 'blocked'){
+    const who = e.type==='poison' ? '👃 Taster' : '💪 Bruiser';
+    burst(fig.pos.x,1.6,fig.pos.z,0x4cc9f0,18,{spd:4,up:5}); floatText(fig.pos.x,3.3,fig.pos.z,'STOPPED!','#4cc9f0'); sfx.hit(); fig.stun = 0.9; shake(0.25);
+    caption(vsMe ? `🛡️ Your ${who} stopped the intruder!` : mine ? `🛡️ ${esc(tname(e.target))}'s ${who} stopped ${esc(e.staffName)}!` : `🛡️ The attempt at ${esc(tname(e.target))} was stopped.`);
+    await wait(quick?600:1200);
+  } else {
+    if (e.type === 'poison'){ const k = toW(t,KEG); t.poisonViz = 1; burst(k.x,1.8,k.z,0x7cff4f,26,{spd:4,up:6}); sfx.poison(); scareCustomers(e.target, 0.5, 'sick');
+      floatText(k.x,3.4,k.z,'POISONED!','#7cff4f'); caption(vsMe ? '☠️ Someone poisoned <b>your</b> keg! Customers are turning green…' : mine ? `☠️ ${esc(e.staffName)} poisoned the keg!` : `🤢 Customers at <b>${esc(tname(e.target))}</b> look sick…`); }
+    if (e.type === 'steal'){ burst(fig.pos.x,1.6,fig.pos.z,0xffc23d,20,{geo:pGeoC,spd:4,up:6}); sfx.coin(); floatText(fig.pos.x,3.3,fig.pos.z,'💰 SWIPED!','#ffc23d');
+      caption(vsMe ? '💰 A thief just emptied part of <b>your</b> till!' : mine ? `💰 ${esc(e.staffName)} grabbed the gold!` : `💰 Coins jingle near <b>${esc(tname(e.target))}</b>'s till…`); }
+    if (e.type === 'brawl'){ shake(0.6); sfx.hit(); fig.punch = 0.5; const c = toW(t,{x:0,z:0}); burst(c.x,1.2,c.z,0x9c6634,22,{geo:pGeoB,spd:6,up:7});
+      t.seats.slice(0,3).forEach(s => s.stool.visible = false); scareCustomers(e.target, 0.7, 'scared'); floatText(c.x,3.4,c.z,'BRAWL!','#ff4d8d');
+      caption(vsMe ? '🪑 A brawl just broke out in <b>your</b> tavern!' : mine ? `🪑 ${esc(e.staffName)} started a glorious brawl!` : `🪑 Chairs are flying at <b>${esc(tname(e.target))}</b>!`); }
+    if (e.type === 'rumor'){ W.customers.filter(c => c.tav === e.target).forEach(c => { if (c.bub) c.bub.material.map = emojiTex('🗣️','#fff'); }); scareCustomers(e.target, 0.3, 'angry'); sfx.miss();
+      caption(vsMe ? '🗣️ Someone is whispering nasty rumors in <b>your</b> tavern…' : mine ? `🗣️ ${esc(e.staffName)} spreads juicy lies.` : `🗣️ Whispers spread around <b>${esc(tname(e.target))}</b>…`); }
+    await wait(quick?700:1500);
+  }
+  if (!ok()) return removeChar(fig);
+  await walk(fig, route(fig.pos, toW(t,{x:rand(-5,5),z:14})), spd+1.5); removeChar(fig);
+}
+
+// ---- mini-games ----
+function mgIntro(e){
+  return new Promise(res => {
+    const M = MISSIONS[e.type], G = {sneak:'Sneak past the guards to their keg', brawl:'Win a punch-timing brawl', pick:'Time your grabs to lift their purse'}[e.game];
+    camTavern(e.target, 1.3, 2);
+    caption(`${STAFF[e.staffType].icon} <b>${esc(e.staffName)}</b> is ready to ${M.name.toLowerCase()} at <b>${esc(tname(e.target))}</b>.`);
+    modal(`<h2>${M.icon} Your move!</h2><div class="item"><div class="ic">${STAFF[e.staffType].icon}</div><div class="tx"><b>${esc(e.staffName)} → ${esc(tname(e.target))}</b><small>${M.desc}</small></div></div>
+      <div class="note" style="text-align:left;font-size:14px;margin:8px 0">🎮 <b>Play it:</b> ${G}. Your skill decides if you get caught.<br>🎲 <b>Auto:</b> your agent tries alone (about ${e.fav?0:Math.round(e.catchP*100)}% catch risk).</div>
+      <div class="row"><button class="btn green" id="gP">🎮 PLAY IT</button></div><div class="row" style="margin-top:6px"><button class="btn ghost sm" id="gA">🎲 Auto</button></div>`);
+    $('#modal').dataset.lock = '1';
+    $('#gP').onclick = () => { delete $('#modal').dataset.lock; closeModal(); res('play'); };
+    $('#gA').onclick = () => { delete $('#modal').dataset.lock; closeModal(); res('auto'); };
+  });
+}
+function playGame(e){ return e.game === 'sneak' ? playSneak(e) : e.game === 'brawl' ? playBrawl(e) : playPick(e); }
+async function afterGame(e, tk){
+  const o = PP.outcome(e), t = W.taverns[e.target];
+  show('#lNight'); camTavern(e.target, 1.2, 2.5);
+  if (o === 'success'){
+    if (e.type === 'poison'){ t.poisonViz = 1; scareCustomers(e.target, 0.5, 'sick'); }
+    if (e.type === 'brawl'){ scareCustomers(e.target, 0.7, 'scared'); t.seats.slice(0,3).forEach(s => s.stool.visible = false); }
+    caption(`✅ <b>${esc(e.staffName)}</b> pulled it off at ${esc(tname(e.target))}!`); sfx.win();
+  } else if (o === 'blocked'){ const who = e.type==='poison'?'👃 Taster':'💪 Bruiser'; caption(`🛡️ Nice work, but ${esc(tname(e.target))}'s ${who} undid it.`); sfx.miss(); }
+  else if (o === 'caught') caption(`⛓️ <b>${esc(e.staffName)}</b> was caught. Jail for 2 nights, and the whole city will hear about it.`);
+  else caption(`💨 <b>${esc(e.staffName)}</b> got away, but the job isn't done.`);
+  await wait(1700);
+}
+
+// input shared by the sneak game
+const keys = {}; const joy = {x:0, y:0, id:null, ox:0, oy:0};
+addEventListener('keydown', e => { keys[e.code] = true; if (MG && MG.kind === 'sneak'){ if (e.code==='Space'||e.code==='KeyE'){ e.preventDefault(); sneakAct(); } if (e.code.startsWith('Shift')) sneakDash(); }
+  if (MG && MG.kind === 'brawl' && (e.code==='Space'||e.code==='Enter')){ e.preventDefault(); brawlPunch(); }
+  if (MG && MG.kind === 'pick' && (e.code==='Space'||e.code==='Enter')){ e.preventDefault(); pickGrab(); } });
+addEventListener('keyup', e => { keys[e.code] = false; });
+const jz = $('#joyZone'), jb = $('#joy'), kn = $('#knob');
+jz.addEventListener('pointerdown', e => { e.preventDefault(); const r = jz.getBoundingClientRect(); joy.id = e.pointerId; joy.ox = e.clientX; joy.oy = e.clientY;
+  jb.style.left = (e.clientX-r.left)+'px'; jb.style.top = (e.clientY-r.top)+'px'; jb.classList.add('on'); jz.setPointerCapture(e.pointerId); });
+jz.addEventListener('pointermove', e => { if (e.pointerId !== joy.id) return; let dx = e.clientX-joy.ox, dy = e.clientY-joy.oy; const d = Math.hypot(dx,dy), m = 50;
+  if (d > m){ dx = dx/d*m; dy = dy/d*m; } joy.x = dx/m; joy.y = dy/m; kn.style.transform = `translate(${dx}px,${dy}px)`; });
+const joyEnd = e => { if (e.pointerId !== joy.id) return; joy.id = null; joy.x = joy.y = 0; kn.style.transform = ''; jb.classList.remove('on'); };
+jz.addEventListener('pointerup', joyEnd); jz.addEventListener('pointercancel', joyEnd);
+function inputDir(){ let x = joy.x, z = joy.y;
+  if (keys.KeyA||keys.ArrowLeft) x -= 1; if (keys.KeyD||keys.ArrowRight) x += 1; if (keys.KeyW||keys.ArrowUp) z -= 1; if (keys.KeyS||keys.ArrowDown) z += 1;
+  const l = Math.hypot(x,z); if (l > 1){ x/=l; z/=l; } return {x, z}; }
+$('#sAct').addEventListener('pointerdown', e => { e.preventDefault(); sneakAct(); });
+$('#sDash').addEventListener('pointerdown', e => { e.preventDefault(); sneakDash(); });
+$('#brBtn').addEventListener('pointerdown', e => { e.preventDefault(); brawlPunch(); });
+$('#pkBtn').addEventListener('pointerdown', e => { e.preventDefault(); pickGrab(); });
+
+let MG = null;
+// --- SNEAK ---
+function playSneak(e){ return new Promise(res => {
+  const own = W.taverns[ME], T = W.taverns[e.target];
+  const ag = makeChar(LOOK[e.staffType]); const st = toW(own,{x:0,z:7.2}); addChar(ag, st, faceLocal(own,0,1));
+  const guards = []; const nG = {easy:2, normal:3, hard:4}[S.difficulty];
+  for (let k=0;k<nG;k++){ const g = makeChar({body:0x34495e, skin:0xf1c27d, hat:'helmet', prop:'spear', scale:1.1});
+    g.ring = [8.5, 12.5, 6.8, 10.5][k]; g.ang = k/nG*TAU + Math.atan2(T.cz,T.cx) + 0.9; g.dir = k%2 ? 1 : -1; g.v = [2.6,3.1,2.9,3.4][k] * (S.difficulty==='hard'?1.15:1);
+    const cone = new THREE.Mesh(new THREE.CircleGeometry(6.5, 24, -Math.PI/3.4 + Math.PI/2, Math.PI/1.7), new THREE.MeshBasicMaterial({color:e.fav?0x7cff4f:0xfff08a, transparent:true, opacity:0.26, depthWrite:false}));
+    cone.rotation.x = -Math.PI/2; cone.position.y = 0.1; g.root.add(cone); g.cone = cone;
+    g.alert = sprite(emojiTex('❗','#ffffff'), 0.9); g.alert.position.y = 3.3; g.alert.visible = false; g.root.add(g.alert);
+    addChar(g, {x:Math.cos(g.ang)*g.ring, z:Math.sin(g.ang)*g.ring}); guards.push(g); }
+  // door sentry at the target
+  const ds = makeChar({body:0x34495e, skin:0xf1c27d, hat:'helmet', prop:'spear', scale:1.1}); ds.door = true; ds.ph = 0;
+  const dc = new THREE.Mesh(new THREE.CircleGeometry(5, 24, -Math.PI/3.4 + Math.PI/2, Math.PI/1.7), new THREE.MeshBasicMaterial({color:e.fav?0x7cff4f:0xfff08a, transparent:true, opacity:0.26, depthWrite:false}));
+  dc.rotation.x = -Math.PI/2; dc.position.y = 0.1; ds.root.add(dc); ds.cone = dc; ds.alert = sprite(emojiTex('❗','#ffffff'), 0.9); ds.alert.position.y = 3.3; ds.alert.visible = false; ds.root.add(ds.alert);
+  addChar(ds, toW(T,{x:-4,z:8})); guards.push(ds);
+  W.guard.root.visible = false;
+  MG = {kind:'sneak', e, ag, guards, T, t:0, limit:45, det:0, res, state:'play', fav:e.fav};
+  cam.follow = ag; cam.k = 5; show('#lSneak');
+  $('#snHint').textContent = e.fav ? '😎 The Captain is bribed: guards won\'t stop you! Reach the glowing keg.' : 'Reach the glowing keg. Stay OUT of the guards\' light! Taverns are safe from their eyes.';
+  banner('SNEAK IN!', '#7cff4f', `Poison ${tname(e.target)}'s keg`, 1.8); sfx.whistle();
+}); }
+function sneakNearKeg(){ const T = MG.T; return d2(MG.ag.pos, toW(T,{x:KEG.x,z:KEG.z+1.0})) < 1.9*1.9 || d2(MG.ag.pos, toW(T,{x:KEG.x-1.2,z:KEG.z})) < 1.3*1.3; }
+function sneakAct(){ if (!MG || MG.kind !== 'sneak' || MG.state !== 'play') return; audioInit();
+  if (!sneakNearKeg()) return;
+  MG.state = 'done'; const k = toW(MG.T, KEG); burst(k.x,1.8,k.z,0x7cff4f,30,{spd:4,up:6}); sfx.poison(); MG.ag.cheer = true;
+  banner('POISONED!', '#7cff4f', 'Now get out of there', 1.5); setTimeout(() => endSneak({caught:false, fizzled:false}), 1400); }
+function sneakDash(){ if (!MG || MG.kind !== 'sneak' || MG.state !== 'play') return; const a = MG.ag; if (a.dashCd > 0) return;
+  const d = inputDir(), l = Math.hypot(d.x,d.z); a.dashDir = l > 0.1 ? {x:d.x/l, z:d.z/l} : {x:Math.sin(a.face), z:Math.cos(a.face)}; a.dash = 0.17; a.dashCd = 1.5; sfx.dash();
+  burst(a.pos.x,0.4,a.pos.z,0xe8dcff,8,{spd:2.5,up:2,life:0.5}); }
+function updateSneak(dt){
+  const m = MG, a = m.ag;
+  a.dash = Math.max(0, a.dash-dt); a.dashCd = Math.max(0, a.dashCd-dt); $('#sDash').classList.toggle('cd', a.dashCd > 0);
+  if (m.state === 'play'){
+    m.t += dt; const left = Math.max(0, m.limit - m.t); $('#snTime').textContent = '⏱ ' + Math.ceil(left);
+    if (left <= 0){ m.state = 'done'; banner('OUT OF TIME', '#ffc23d', 'Your agent slips away', 1.5); setTimeout(() => endSneak({fizzled:true}), 1200); }
+    const d = inputDir(); let tx = d.x*6.0, tz = d.z*6.0;
+    if (a.dash > 0){ a.vel.x = a.dashDir.x*17; a.vel.z = a.dashDir.z*17; } else { const k = 1 - Math.exp(-14*dt); a.vel.x += (tx-a.vel.x)*k; a.vel.z += (tz-a.vel.z)*k; }
+    a.pos.x += a.vel.x*dt; a.pos.z += a.vel.z*dt; collide(a.pos, 0.45);
+    a.spd = Math.hypot(a.vel.x, a.vel.z); if (a.spd > 0.4){ const want = Math.atan2(a.vel.x,a.vel.z); let df = want - a.face; df = Math.atan2(Math.sin(df),Math.cos(df)); a.face += df*Math.min(1,dt*14); }
+    const near = sneakNearKeg(); $('#sAct').classList.toggle('off', !near);
+  } else a.spd = 0;
+  // guards
+  const ar = regionOf(a.pos); let seen = false;
+  m.guards.forEach(g => {
+    if (g.chase){ const dx = a.pos.x-g.pos.x, dz = a.pos.z-g.pos.z, d = Math.hypot(dx,dz)||1; g.pos.x += dx/d*8.5*dt; g.pos.z += dz/d*8.5*dt; g.face = Math.atan2(dx,dz); g.spd = 8.5;
+      if (d < 1.2 && m.state === 'chase'){ m.state = 'done'; a.stun = 2; sfx.busted(); shake(0.5); banner('BUSTED!', '#4cc9f0', 'The Guard caught your agent', 1.8); setTimeout(() => endSneak({caught:true}), 1500); }
+      return; }
+    if (g.door){ g.ph += dt*0.6; const lx = Math.sin(g.ph)*4.2; const p = toW(m.T,{x:lx, z:8}); const dx = p.x-g.pos.x, dz = p.z-g.pos.z; g.pos.x = p.x; g.pos.z = p.z;
+      g.spd = Math.hypot(dx,dz)/dt; g.face = Math.atan2(dx,dz) || g.face; }
+    else { g.ang += g.dir*g.v/g.ring*dt; const p = {x:Math.cos(g.ang)*g.ring, z:Math.sin(g.ang)*g.ring}; const dx = p.x-g.pos.x, dz = p.z-g.pos.z; g.pos.x = p.x; g.pos.z = p.z; g.spd = g.v; g.face = Math.atan2(dx,dz); }
+    if (m.fav || m.state !== 'play') return;
+    const dx = a.pos.x-g.pos.x, dz = a.pos.z-g.pos.z, d = Math.hypot(dx,dz), fx = Math.sin(g.face), fz = Math.cos(g.face);
+    const range = g.door ? 5 : 6.5;
+    const sees = d < range && (dx*fx+dz*fz)/(d||1) > 0.52 && ar === -1;
+    g.alert.visible = sees; g.cone.material.color.setHex(sees ? 0xff4d4d : 0xfff08a); if (sees) seen = true;
+  });
+  if (m.state === 'play' && !m.fav){
+    m.det = clamp(m.det + (seen ? dt*1.7 : -dt*0.6), 0, 1); $('#snDet').style.width = (m.det*100)+'%';
+    if (m.det >= 1){ m.state = 'chase'; sfx.whistle(); banner('SPOTTED!', '#ff4d4d', null, 1);
+      const g = m.guards.slice().sort((p,q) => d2(p.pos,a.pos) - d2(q.pos,a.pos))[0]; g.chase = true; g.alert.visible = true; }
+  }
+  // target arrow + keg glow
+  const k = toW(m.T, KEG); W.arrow.visible = m.state === 'play'; W.arrow.position.set(k.x, 3.6 + Math.sin(performance.now()/160)*0.3, k.z); W.arrow.rotation.y += dt*3;
+  m.T.ringOn = true;
+}
+function endSneak(r){ const m = MG; if (!m) return; MG = null;
+  m.guards.forEach(g => removeChar(g)); removeChar(m.ag); W.arrow.visible = false; m.T.ringOn = false; cam.follow = null; W.guard.root.visible = true;
+  if (r.caught) m.e.caught = true; else m.e.caught = false; m.e.fizzled = !!r.fizzled; m.res({caught:m.e.caught, fizzled:m.e.fizzled}); }
+
+// --- BRAWL ---
+function playBrawl(e){ return new Promise(res => {
+  const T = W.taverns[e.target]; camTavern(e.target, 0.62, 3);
+  const me1 = makeChar(LOOK.bruiser); addChar(me1, toW(T,{x:-0.9,z:2.6}), faceLocal(T,1,0));
+  const foe = makeChar({body:pickA(CUST_BODY), skin:pickA(CUST_SKIN), hat:'cap', hatColor:0x333333, scale:1.1}); addChar(foe, toW(T,{x:0.9,z:2.6}), faceLocal(T,-1,0));
+  const hasB = PP.active(S.taverns[e.target],'bruiser') > 0;
+  MG = {kind:'brawl', e, me1, foe, T, hits:0, miss:0, needle:0, dir:1, speed:1.1, zw:hasB?0.13:0.2, zc:rand(0.25,0.75), res, lock:0, done:false};
+  placeZone(); show('#lBrawl'); updateBrawlLives();
+  banner('BRAWL!', '#ff4d8d', hasB ? 'They have a Bruiser: the green zone is tiny!' : 'Time your punches', 1.6);
+}); }
+function placeZone(){ const z = $('#brZone'); z.style.left = ((MG.zc - MG.zw/2)*100)+'%'; z.style.width = (MG.zw*100)+'%'; }
+function updateBrawlLives(){ $('#brLives').textContent = '👊'.repeat(MG.hits) + '⚪'.repeat(3-MG.hits) + '   ' + '❤️'.repeat(3-MG.miss) + '🖤'.repeat(MG.miss); }
+function brawlPunch(){ const m = MG; if (!m || m.kind !== 'brawl' || m.done || m.lock > 0) return; audioInit(); m.lock = 0.25;
+  if (Math.abs(m.needle - m.zc) <= m.zw/2){ m.hits++; m.me1.punch = 0.35; m.foe.stun = 0.6; sfx.hit(); shake(0.35);
+    burst(m.foe.pos.x,1.8,m.foe.pos.z,0xfff27a,12,{spd:4,up:4}); burst(m.foe.pos.x,1.0,m.foe.pos.z,0x9c6634,6,{geo:pGeoB,spd:5,up:6});
+    floatText(m.foe.pos.x,3.2,m.foe.pos.z,['POW!','BAM!','KO!'][m.hits-1],'#ff4d8d'); m.speed += 0.35; m.zc = rand(0.2,0.8); placeZone(); }
+  else { m.miss++; m.foe.punch = 0.35; m.me1.stun = 0.5; sfx.miss(); floatText(m.me1.pos.x,3.2,m.me1.pos.z,'MISS','#ffffff'); }
+  updateBrawlLives();
+  if (m.hits >= 3){ m.done = true; banner('BRAWL STARTED!', '#7cff4f', 'The whole tavern is fighting!', 1.6); m.T.seats.slice(0,3).forEach(s => s.stool.visible = false); shake(0.7); m.me1.cheer = true; setTimeout(() => endBrawl({}), 1500); }
+  else if (m.miss >= 3){ m.done = true; const caught = !m.e.fav && Math.random() < 0.4; banner(caught ? 'THROWN OUT… AND CAUGHT!' : 'THROWN OUT!', '#ff4d6d', null, 1.6); setTimeout(() => endBrawl(caught ? {caught:true} : {fizzled:true}), 1500); }
+}
+function updateBrawl(dt){ const m = MG; m.lock = Math.max(0, m.lock-dt); if (m.done) return;
+  m.needle += m.dir*m.speed*dt; if (m.needle > 1){ m.needle = 1; m.dir = -1; } if (m.needle < 0){ m.needle = 0; m.dir = 1; } $('#brNeedle').style.left = (m.needle*100)+'%'; }
+function endBrawl(r){ const m = MG; MG = null; removeChar(m.me1); removeChar(m.foe); m.e.caught = !!r.caught; m.e.fizzled = !!r.fizzled; m.res({caught:m.e.caught, fizzled:m.e.fizzled}); }
+
+// --- PICKPOCKET ---
+function playPick(e){ return new Promise(res => {
+  const T = W.taverns[e.target]; camTavern(e.target, 0.6, 3);
+  const vic = W.owners[e.target]; const thief = makeChar(LOOK.pickpocket); addChar(thief, toW(T,{x:-3.2,z:-2.0}), faceLocal(T,1,0));
+  MG = {kind:'pick', e, T, vic, thief, round:0, hits:0, miss:0, r:1, dur:1.5, res, done:false, wait:0.6};
+  show('#lPick'); updatePickLives(); banner('PICKPOCKET!', '#ffc23d', 'Grab when the rings line up', 1.5);
+}); }
+function updatePickLives(){ $('#pkLives').textContent = '💰'.repeat(MG.hits) + '⚪'.repeat(Math.max(0,3-MG.round)) + '   ' + '👀'.repeat(MG.miss); }
+const PICK_T = 84/220;
+function pickGrab(){ const m = MG; if (!m || m.kind !== 'pick' || m.done || m.wait > 0) return; audioInit();
+  const good = Math.abs(m.r - PICK_T) < 0.075; nextPick(good); }
+function nextPick(good){ const m = MG;
+  if (good){ m.hits++; sfx.coin(); burst(m.vic.pos.x,1.6,m.vic.pos.z,0xffc23d,10,{geo:pGeoC,spd:3,up:5}); floatText(m.thief.pos.x,3.2,m.thief.pos.z,'+💰','#ffc23d'); m.thief.punch = 0.3; }
+  else { m.miss++; sfx.miss(); floatText(m.vic.pos.x,3.3,m.vic.pos.z,'HEY?!','#ff4d6d'); m.vic.punch = 0.3; }
+  m.round++; m.r = 1; m.dur = Math.max(0.8, m.dur - 0.22); m.wait = 0.6; updatePickLives();
+  if (m.miss >= 2){ m.done = true; const caught = !m.e.fav; banner(caught ? 'SPOTTED!' : 'SPOTTED… BUT BRIBED', '#ff4d6d', caught?'Guards!':'The Captain looks away', 1.6);
+    setTimeout(() => endPick(caught ? {caught:true} : (m.hits ? {frac:m.hits/3} : {fizzled:true})), 1500); return; }
+  if (m.round >= 3){ m.done = true; if (m.hits){ banner(`${m.hits}/3 GRABS!`, '#ffc23d', null, 1.4); setTimeout(() => endPick({frac:m.hits/3}), 1300); } else setTimeout(() => endPick({fizzled:true}), 900); }
+}
+function updatePick(dt){ const m = MG; if (m.done) return;
+  if (m.wait > 0){ m.wait -= dt; $('#pickRing').style.transform = 'scale(1)'; return; }
+  m.r -= dt / m.dur; if (m.r <= 0.02){ nextPick(false); return; }
+  $('#pickRing').style.transform = `scale(${m.r})`; $('#pickRing').style.borderColor = Math.abs(m.r - PICK_T) < 0.075 ? '#7cff4f' : '#fff'; }
+function endPick(r){ const m = MG; MG = null; removeChar(m.thief); m.e.caught = !!r.caught; m.e.fizzled = !!r.fizzled; if (r.frac) m.e.frac = r.frac; m.res({caught:m.e.caught, fizzled:m.e.fizzled, frac:m.e.frac}); }
+
+// =====================================================================
+// DAWN REPORT + END
+// =====================================================================
+function showReport(res){
+  const r = res.perTavern[ME], p = me();
+  const mine = r.msgs.filter(m => m.kind === 'good' || m.kind === 'bad');
+  const intel = r.msgs.filter(m => m.kind === 'intel'), news = r.msgs.filter(m => m.kind === 'news');
+  let h = `<h2>🌅 Dawn after Night ${S.over ? S.maxDays : S.day-1}</h2>
+    <div class="trio"><div><b>${r.served}</b>customers</div><div><b style="color:var(--poison)">+${r.income}</b>earned</div><div><b style="color:var(--pink)">−${r.wages}</b>wages</div></div>`;
+  if (mine.length) h += `<div class="sec">Your night</div>` + mine.map(m => `<div class="rline ${m.kind}">${esc(m.text)}</div>`).join('');
+  if (intel.length) h += `<div class="sec">Secret intel (only you know this)</div>` + intel.map(m => `<div class="rline intel">${esc(m.text)}</div>`).join('');
+  if (r.newIncidents.length) h += `<div class="rline bad">🔍 ${r.newIncidents.length} new case${r.newIncidents.length>1?'s':''} in your Case File. Clues were found!</div>`;
+  const town = [...news.map(m=>m.text), ...res.news];
+  if (town.length) h += `<div class="sec">Talk of the town</div>` + town.map(t => `<div class="rline news">${esc(t)}</div>`).join('');
+  h += `<div class="trio" style="grid-template-columns:1fr 1fr"><div><b style="color:var(--gold)">💰 ${p.gold}</b>gold</div><div><b>⭐ ${p.rep}</b>reputation</div></div>`;
+  h += S.over ? `<div class="row"><button class="btn green" id="rGo">🏆 Final results</button></div>` : `<div class="row"><button class="btn" id="rGo">☀️ Start Day ${S.day}</button></div>`;
+  modal(h); $('#modal').dataset.lock = '1';
+  sfx.rooster();
+  $('#rGo').onclick = () => { delete $('#modal').dataset.lock; closeModal(); if (S.over) showEnd(); else { tipIdx = 0; startDay(false); } };
+}
+function showEnd(){
+  phase = 'end'; dayTarget = 0.2; camCity(1);
+  const rank = PP.ranking(S), pos = rank.findIndex(t => t.id === ME) + 1;
+  let h = `<h2 style="text-align:center;font-size:34px">${pos===1?'🏆 YOU RULE ASHVEIL!':pos===2?'🥈 So close!':'🍺 Last orders…'}</h2>`;
+  h += rank.map((t,i) => `<div class="rank ${t.id===ME?'me':''}"><span class="n">${i+1}</span>${dotOf(t.id)}<span>${t.id===ME?'You':esc(t.name)}</span>
+    <span class="s">${PP.score(t)}<small>💰${t.gold} · ⭐${t.rep}</small></span></div>`).join('');
+  const hits = []; S.history.forEach(n => n.events.forEach(e => { if (e.target === ME && e.by !== ME && MISSIONS[e.type].harm) hits.push(`Night ${n.day}: ${tname(e.by)} tried to ${MISSIONS[e.type].name.toLowerCase()} you (${e.outcome}).`); }));
+  const moles = me().staff.filter(s => s.moleFor !== null).map(s => `${s.name} was secretly working for ${tname(s.moleFor)}!`);
+  const bribes = S.history.filter(n => n.fav !== null).map(n => `Night ${n.day}: ${n.fav===ME?'You':tname(n.fav)} had the Captain's favour.`);
+  h += `<div class="sec">🕵️ The truth revealed</div>`;
+  [...moles.map(t=>`<div class="rline bad">🐀 ${esc(t)}</div>`), ...hits.map(t=>`<div class="rline">${esc(t)}</div>`), ...bribes.map(t=>`<div class="rline news">🪙 ${esc(t)}</div>`)]
+    .forEach(x => h += x);
+  if (!hits.length && !moles.length) h += `<div class="rline">Nobody laid a finger on you. Suspicious…</div>`;
+  h += `<div class="row"><button class="btn green" id="eA">PLAY AGAIN</button></div><div class="row" style="margin-top:6px"><button class="btn ghost sm" id="eM">Main menu</button></div>`;
+  $('#endCard').innerHTML = h; show('#mEnd'); if (pos === 1){ sfx.win(); W.owners[ME].cheer = true; }
+  $('#eA').onclick = () => { show('#mSetup'); }; $('#eM').onclick = toMenu;
+}
+
+// =====================================================================
+// MENU SCENE + LOOP
+// =====================================================================
+let menuT = 0;
+function buildMenuScene(){ buildWorld(PP.CREWS.slice(0,4).map(c => ({name:c.name, css:c.css}))); W.guard.root.visible = true; dayTarget = 0.45; }
+function menuUpdate(dt){
+  menuT += dt; const a = menuT*0.07, r = portrait ? 40 : 32;
+  cam.gp.set(Math.cos(a)*r, portrait?30:22, Math.sin(a)*r); cam.gl.set(0,0,0); cam.k = 2; cam.follow = null;
+}
+function updateWorld(dt){
+  if (!W) return;
+  updateMovers(dt);
+  const all = [...W.owners, ...W.staff.values(), ...W.recruits, ...W.customers, ...W.extras, W.guard, W.captain];
+  all.forEach(ch => { ch.stun = Math.max(0, (ch.stun||0)-dt); ch.root.position.set(ch.pos.x, ch.root.position.y, ch.pos.z);
+    let df = ch.face - ch.root.rotation.y; df = Math.atan2(Math.sin(df),Math.cos(df)); ch.root.rotation.y += df*Math.min(1,dt*10);
+    if (!([...W.movers].some(m => m.ch === ch)) && !MG) ch.spd = Math.max(0, ch.spd - dt*20); animChar(ch, dt); });
+  W.captain.root.position.y = 3.45;
+  // night watchman patrol
+  if (W.guard.root.visible && !W.guard.chasing && phase !== 'day'){ const g = W.guard; g.patrolA += dt*0.28; const p = {x:Math.cos(g.patrolA)*9, z:Math.sin(g.patrolA)*9};
+    const already = [...W.movers].some(m => m.ch === g); if (!already){ const dx = p.x-g.pos.x, dz = p.z-g.pos.z; g.pos.x = p.x; g.pos.z = p.z; g.spd = 2.5; g.face = Math.atan2(dx,dz); } }
+  W.taverns.forEach(t => { const pv = t.poisonViz; t.kegMat.emissive.setRGB(pv*(0.12+0.1*Math.sin(performance.now()/120)), pv*(0.45+0.25*Math.sin(performance.now()/120)), pv*0.05);
+    if (pv && Math.random() < dt*8){ const k = toW(t,KEG); burst(k.x+rand(-.5,.5),1.8,k.z+rand(-.5,.5),0x7cff4f,1,{spd:0.5,up:3,grav:-1,life:1.2}); }
+    t.ring.material.opacity = t.ringOn ? 0.5 + 0.3*Math.sin(performance.now()/150) : 0; });
+}
+let last = performance.now();
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.05, (now-last)/1000); last = now;
+  if (phase === 'menu') menuUpdate(dt);
+  if (MG){ if (MG.kind === 'sneak') updateSneak(dt); else if (MG.kind === 'brawl') updateBrawl(dt); else if (MG.kind === 'pick') updatePick(dt); }
+  updateWorld(dt); updateParticles(dt); updateLight(dt); updateCamera(dt);
+  renderer.render(scene, camera);
+}
+buildMenuScene(); requestAnimationFrame(frame);
+window.__PPUI = {get S(){return S;}, get phase(){return phase;}, get MG(){return MG;}, setTab, runNight, startGame, sneakAct, brawlPunch, pickGrab,
+  get W(){return W;}, endSneak:(r)=>endSneak(r)};
+})();
+</script>
+</body>
+</html>
